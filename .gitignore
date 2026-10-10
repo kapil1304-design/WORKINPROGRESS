@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+node_modules/
+.aws/
+.codex/
+.agents/
+*.log
+*.sqlite
+*.sqlite3
+*.db
+uploads/
+runtime/
+Thumbs.db
+.DS_Store
