@@ -13,7 +13,7 @@ Implementation assumptions (assistant-selected, revisable):
 - Active-project retention extends until closure; expired closed projects require owner review/export before any deletion. No automatic deletion.
 - Reminders begin after a missed timeliness period, repeat in two-hour buckets during Monday–Saturday 09:00–19:30, and a later member update resolves earlier missed periods that day. No reminder debt for closed intervals. Sunday has no scheduled obligations.
 - Simple version-one forms and configurable business data; no budget, launch date or service guarantee inferred.
-- Initial technology is dependency-free HTML/CSS/JavaScript for a local workflow prototype. Secure shared pilot requires a server database, server authorization, real email OTP and unattended jobs; backend/provider choice will follow available runtime and deployment evidence.
+- Current development stack is Node.js 24 with built-in SQLite/HTTP/crypto and a responsive client in web/. See DEVELOPMENT.md for commands. The legacy app/ is only the browser prototype. Server core passed 24 automated CI tests; real email delivery and deployment remain pending.
 
 Current output: [local pilot](app/index.html), [source](app/app.js), [prototype notes](app/README.md). Implements demonstrable projects, members, tasks, status updates, verification, approval requests, scoped demo views/comments, in-app alerts and closure/reopening.
 

@@ -4,7 +4,7 @@ let state, view = 'projects', selected = null;
 const dateTime = value => value ? new Date(value).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'Not updated';
 async function api(path, input, key) {
   const response = await fetch(`/api${path}`, { method: input === undefined ? 'GET' : 'POST', credentials: 'same-origin', headers: input === undefined ? {} : { 'Content-Type': 'application/json', 'X-WIP-Request': '1', ...(key ? { 'Idempotency-Key': key } : {}) }, body: input === undefined ? undefined : JSON.stringify(input) });
-  const result = await response.json();
+    const result = await response.json();
   if (!response.ok) { if (response.status === 401 && !path.startsWith('/auth')) showLogin(); throw Error(result.error || 'Request failed.'); }
   return result;
 }
@@ -42,7 +42,7 @@ function render() {
 }
 function renderProjects() {
   const p = selected && project(selected); if (p) return renderProject(p);
-  $('content').innerHTML = `<div class="bar"><p class="muted">Live recorded progress, from planning through final acceptance.</p>${state.me.owner ? '<button class="primary" id="new-project">+ New project</button>' : ''}</div><div class="grid">${state.projects.map(p => { const ts = projectTasks(p), percent = ts.length ? Math.round(ts.filter(t => t.status === 'Completed').length / ts.length * 100) : 0; return `<article class="card"><div class="project-top"><span class="tag ${p.closed ? 'closed' : ''}">${p.closed ? 'Closed' : esc(p.stage)}</span><small>${esc(p.role)}</small></div><h3>${esc(p.name)}</h3><p class="muted">${esc(p.customer || 'Assigned project')}<br>Delivery ${esc(p.delivery)}</p><div class="progress-line"><span style="width:${percent}%"></span></div><p class="muted">${ts.filter(t => t.status === 'Completed').length} / ${ts.length} visible tasks verified</p><button data-project="${p.id}">Open project →</button></article>`; }).join('')}</div>${!state.projects.length ? '<div class="empty">No projects yet. The owner can create a project and add members.</div>' : ''}`;
+  $('content').innerHTML = `<div class="bar"><p class="muted">Live recorded progress, from planning through final acceptance.</p>${state.me.owner ? '<button class="primary" id="new-project">+ New project</button>' : ''}</div><div class="grid">${state.projects.map(p => { const ts = projectTasks(p), percent = ts.length ? Math.round(ts.filter(t => t.status === 'Completed').length / ts.length * 100) : 0; return `<article class="card"><div class="project-top"><span class="tag ${p.closed ? 'closed' : ''}">${p.closed ? 'Closed' : esc(p.stage)}</span><small>${esc(p.role)}</small></div><h3>${esc(p.name)}</h3><p class="muted">${esc(p.customer || 'Assigned project')}<br>Delivery ${esc(p.delivery)}</p><progress class="progress-line" max="100" value="${percent}"></progress><p class="muted">${ts.filter(t => t.status === 'Completed').length} / ${ts.length} visible tasks verified</p><button data-project="${p.id}">Open project →</button></article>`; }).join('')}</div>${!state.projects.length ? '<div class="empty">No projects yet. The owner can create a project and add members.</div>' : ''}`;
   document.querySelectorAll('[data-project]').forEach(b => b.onclick = () => { selected = b.dataset.project; render(); });
   if ($('new-project')) $('new-project').onclick = () => modal('Create project', field('Project name', 'name') + field('Customer / order reference', 'customer') + field('Project start date', 'start', 'date', new Date().toISOString().slice(0, 10)) + field('Delivery date', 'delivery', 'date'), input => api('/projects', input));
 }

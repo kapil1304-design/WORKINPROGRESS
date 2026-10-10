@@ -21,6 +21,7 @@ export function createApp(config = {}) {
   if (!ownerEmail && !store.all('users').length) throw new Error('Set OWNER_EMAIL before starting.');
   if (ownerEmail) service.bootstrap(ownerEmail, process.env.OWNER_NAME);
   const mailer = config.mailer || new Mailer({ mode: mailMode, production, dataDir, apiKey: process.env.RESEND_API_KEY, from: process.env.MAIL_FROM });
+  if (production && !config.mailer && (mailMode !== 'resend' || !process.env.RESEND_API_KEY || !process.env.MAIL_FROM)) throw new Error('Production email provider credentials and sender are required.');
   const auth = new Auth(store, mailer, config.authClock);
   const files = new Files(service, join(dataDir, 'uploads'), Number(process.env.UPLOAD_MAX_BYTES) || 5 * 1024 * 1024);
   const cookie = token => `wip_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${token ? 28800 : 0}${production ? '; Secure' : ''}`;
