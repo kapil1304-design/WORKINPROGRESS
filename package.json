@@ -1,0 +1,12 @@
+{
+  "name": "workinprogress",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24.0.0" },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server/main.js",
+    "test": "node --test test/*.test.js",
+    "check": "node --check server/main.js && node --check server/service.js && node --check web/client.js"
+  }
+}

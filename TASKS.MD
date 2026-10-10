@@ -4,6 +4,18 @@ Last updated: 2026-10-10
 Status: Pilot development in progress; local workflow prototype implemented, secure shared pilot pending.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§8, 13–14 and Added Input.
 
+## Shared application implementation — 2026-10-10
+
+Current milestone supersedes the earlier browser-prototype-only implementation status. User requested continued project development. Assistant selected Node.js 24, built-in HTTP/crypto/SQLite and a responsive web client for the single-server pilot; no third-party runtime dependencies or hosting purchase.
+
+Implemented source: server/store.js, server/auth.js, server/service.js, server/files.js, server/main.js and web/. Includes persistent transactional records, email OTP/session handling, project-scoped role checks, membership removal, allocation/acknowledgement/status, physical verification, supply quantities, approval workflows, scoped comments, private photo/PDF downloads, customer-safe projections/optional revision responses, owner-only reopening, and server reminder jobs in Asia/Kolkata. See DEVELOPMENT.md for setup and precise limits. Implementation is awaiting runtime test results at this handoff point.
+
+Pilot assumptions: role purchase head=manager; 5-MB configurable upload cap (expected files remain under 1 MB); JPEG/PNG/WebP/PDF; expiry requires owner review, no deletion; active retention extends until closure. Member reporting is per project; late updates satisfy earlier outstanding periods. Evening reminder debt carries to next working morning; arbitrary outages before the previous working day are not reconstructed. Internal membership grants operational collaboration; external accounts see assigned work/private conversation plus designated internal contacts. Customer free-text status is excluded; explicitly shared comments/files remain visible.
+
+Authentication development mode stores test codes in an ignored local mailbox, binds loopback, and cannot run in production. Real email integration uses Resend with provider credentials/verified sender, not yet exercised. Every actual login requires a single-use code; there is no demo identity selector in the shared app.
+
+Verification pending: Node installation requires Windows administrator approval; service and HTTP/OTP tests are written in test/. GitHub Actions workflow runs syntax and tests. Do not mark tests passed until run. No shared deployment, actual email delivery, browser visual QA or backup restoration has been performed. Remaining report features are listed in DEVELOPMENT.md; not all F01–F36/AT01–AT38 are implemented or passed.
+
 ## Active development baseline — 2026-10-10
 
 Latest user instruction authorizes development of a testable pilot and delegates remaining routine decisions to the assistant. Stop the sequential questionnaire; ask only for essential missing information. This supersedes earlier documentation-only scope and pending-question handoffs. Existing confirmed business rules remain binding.
@@ -555,8 +567,8 @@ Update at actual work start, completion, blocker changes, priority changes, and 
 | ID | Work | Status | Evidence |
 | --- | --- | --- | --- |
 | DEV01 | Local pilot workflow prototype | Done | app/index.html, app/app.js, app/style.css; seven isolated logic checks passed; visual QA not performed. |
-| DEV02 | Secure shared persistence and email OTP | Not started | Requires server runtime, database, server permission checks and email delivery configuration. |
-| DEV03 | Complete attachments, supply workflows, customer acceptance and background reminders | Not started | Implement against confirmed rules with meaningful permission/workflow tests. |
+| DEV02 | Secure shared persistence and email OTP | In progress | Node/SQLite API and web client implemented; test suite written; real delivery/provider and runtime verification pending. |
+| DEV03 | Complete attachments, supply workflows, customer acceptance and background reminders | In progress | Source implemented with HTTP/server permission checks; tests pending runtime. Remaining report workflows in DEVELOPMENT.md. |
 
 | 2026-10-10 | User authorized pilot development and delegated remaining assumptions; local workflow prototype implemented and seven isolated logic checks passed. |
 
@@ -571,3 +583,5 @@ GitHub account authenticated: kapil1304-design. User created the existing WORKIN
 ## Verified GitHub publication — 2026-10-10
 
 Initial project push completed to https://github.com/kapil1304-design/WORKINPROGRESS on main. Commit: 7eb61dba557ae631a5441774efeb8d04e4c8ec0e. Verified local HEAD equals remote refs/heads/main using git ls-remote. Repository visibility remains public as created by the user. Included prototype source, seven maintained instruction/project documents, README, ignore rules and original report. Git diff --cached --check passed before commit. No app hosting/deployment performed.
+
+| 2026-10-10 | Implemented Node/SQLite shared web application, OTP adapter, scoped workflows, files and reminder jobs; tests written and runtime verification pending. |

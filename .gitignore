@@ -7,9 +7,13 @@ node_modules/
 .agents/
 *.log
 *.sqlite
+*.sqlite-shm
+*.sqlite-wal
 *.sqlite3
 *.db
 uploads/
 runtime/
+coverage/
+test-results/
 Thumbs.db
 .DS_Store
