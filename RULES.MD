@@ -4,6 +4,10 @@ Last updated: 2026-10-11
 Status: Initial documented rules; application rules are requirements/proposals awaiting implementation.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§5–12, 15, and Added Input; user's instruction to maintain six project documents.
 
+## Visible workflow verification and assignment visibility — 2026-10-11
+
+Visible acceptance testing uses synthetic WATCH TEST data and simulated physical verification only; it does not establish real machine acceptance or official customer commitments. Existing unrelated project data was left intact. Walkthrough requires local development mailbox and loopback origin. Browser artifacts/OTP files remain ignored; codes are not logged.
+
 ## Explicit task recipient selection — 2026-10-11
 
 Assignment must target an explicitly selected execution member added to the project; global owner access alone does not make the owner an added task recipient. Customers are excluded. Owner/manager/purchase manager retain assignment authority. This turn includes a user-authorized one-project reset, not a general deletion policy.
@@ -559,3 +563,5 @@ Update when an invariant, permission policy, operating convention, or stack-spec
 | 2026-10-11 | Added project-specific vendor member item name with editing; 32 local tests passed and live app restarted. |
 
 | 2026-10-11 | Required explicit assignment to added project members; 34 local tests passed and authorized test project reset completed. |
+
+| 2026-10-11 | Prominent assignee selection and dialog scroll reset; 34 automated tests and 34 slow visible workflow checks passed, plus selector visibility regression. |

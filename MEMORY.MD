@@ -3,6 +3,10 @@
 Last updated: 2026-10-11
 Status: Shared Node/SQLite pilot implemented; 24 automated tests passed; actual email and deployment pending.
 
+## Visible workflow verification and assignment visibility — 2026-10-11
+
+On 2026-10-11 user again reported no visible assignee control and asked for slow visible end-to-end testing. Made selector prominent, added selection confirmation/saved assignee labels, and fixed reused dialog scroll position. Created one labelled WATCH TEST project and six synthetic members; completed all 34 visible checks with four verified tasks and final closure. Checked reopen by owner preserves Final acceptance and manager lacks reopen. Existing user project left intact; no reset authorized/performed in this turn. Final selector visibility regression passed after reload. Local result JSON/screenshots retained in ignored runtime/walkthrough; actual provider email is still not configured.
+
 ## Explicit task recipient selection — 2026-10-11
 
 User reported unclear task assignee selection and requested choosing from added members; authorized another fresh start on 2026-10-11. Implemented required, initially blank dropdown with name/role/department-or-item/email labels and project-membership validation. Cleared only the single test project and related records, retaining owner login and ignored backup. All 34 tests passed. App session 53859; refresh and rebuild project/members.
@@ -638,3 +642,5 @@ Final application commit a44a004a3252dd333a59df27f36bf43f50f294f2 verified by su
 | 2026-10-11 | Added project-specific vendor member item name with editing; 32 local tests passed and live app restarted. |
 
 | 2026-10-11 | Required explicit assignment to added project members; 34 local tests passed and authorized test project reset completed. |
+
+| 2026-10-11 | Prominent assignee selection and dialog scroll reset; 34 automated tests and 34 slow visible workflow checks passed, plus selector visibility regression. |

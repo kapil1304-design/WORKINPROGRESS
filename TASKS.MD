@@ -4,6 +4,10 @@ Last updated: 2026-10-11
 Status: Shared pilot core implemented; 24 automated tests passed; development continues on remaining features and operational readiness.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§8, 13–14 and Added Input.
 
+## Visible workflow verification and assignment visibility — 2026-10-11
+
+DEV08 Done: improved assignment visibility and dialog-scroll reset, and completed slow visible browser acceptance run. All 34 automated tests passed; all 34 visible workflow checks passed, followed by selector visibility/closed-state regression checks. Tested OTP/project/PO/member departments/vendor item/editing, explicit staff/vendor/service task allocation, date/scope/delivery approval, status/acknowledgement/verification, dispatch/receipt/inspection, customer responses/comments/PDF upload, stages, closure/reopening. Timed reminders remain covered by automated tests; live email, production and unimplemented report features remain pending.
+
 ## Explicit task recipient selection — 2026-10-11
 
 DEV07 Done: explicit project-member assignment implemented, syntax and all 34 tests passed including dropdown candidate/label checks and server recipient validation. Authorized test project reset completed with backup (zero projects, one owner retained). App restarted in session 53859; health and assignment module HTTP 200.
@@ -629,3 +633,5 @@ Final application commit a44a004a3252dd333a59df27f36bf43f50f294f2 verified by su
 | 2026-10-11 | Added project-specific vendor member item name with editing; 32 local tests passed and live app restarted. |
 
 | 2026-10-11 | Required explicit assignment to added project members; 34 local tests passed and authorized test project reset completed. |
+
+| 2026-10-11 | Prominent assignee selection and dialog scroll reset; 34 automated tests and 34 slow visible workflow checks passed, plus selector visibility regression. |

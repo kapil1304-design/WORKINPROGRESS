@@ -4,6 +4,10 @@ Last updated: 2026-10-11
 Status: Node.js/SQLite pilot implemented and CI-tested; shared hosting/production rollout pending.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§5–12 and Added Input.
 
+## Visible workflow verification and assignment visibility — 2026-10-11
+
+Added scripts/walkthrough.js: explicit local-mailbox-only, loopback-only visible Edge/CDP acceptance runner with paced form filling, real UI submission and read-only state assertions. Uses labelled synthetic accounts/project and ignored runtime/walkthrough screenshots/results. Browser operations cover current Node-backed app; no production deployment or real email test was performed. Web entrypoint has an updated script URL to reload current assignment UI.
+
 ## Explicit task recipient selection — 2026-10-11
 
 web/assignment.js builds options from current project memberships and matching user profiles; served as an explicit static module. createTask validates a supplied recipient and requires actual project membership, including for the global owner. This removes prior automatic owner inclusion. Existing project scope/role authorization remains.
@@ -626,3 +630,5 @@ Update after selecting technologies, implementing/changing modules or schemas, c
 | 2026-10-11 | Added project-specific vendor member item name with editing; 32 local tests passed and live app restarted. |
 
 | 2026-10-11 | Required explicit assignment to added project members; 34 local tests passed and authorized test project reset completed. |
+
+| 2026-10-11 | Prominent assignee selection and dialog scroll reset; 34 automated tests and 34 slow visible workflow checks passed, plus selector visibility regression. |

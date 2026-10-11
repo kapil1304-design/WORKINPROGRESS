@@ -4,6 +4,10 @@ Last updated: 2026-10-11
 Status: Confirmed requirements with tested shared pilot core; remaining report features and production readiness pending.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), version 1.0, 8 October 2026, sections 1–18 and Added Input.
 
+## Visible workflow verification and assignment visibility — 2026-10-11
+
+R29 follow-up: member selection must be immediately visible when Assign task opens, with a required empty choice and live Assigned to confirmation. Saved task rows label the assignee. AT44: reopening a scrolled dialog resets to the top and shows an initially unselected member selector; verified in the visible browser. User requested a slow, visible full-workflow check. Completed 34 visible workflow checks plus the scroll/visibility regression; 34 automated tests also passed.
+
 ## Explicit task recipient selection — 2026-10-11
 
 R29: Task assignment requires explicit selection from execution members added to the current project. Dropdown identifies members by name, role, departments/vendor item and email. Customers and users not added to this project are excluded. AT43: no automatic default; assignment rejects omitted/nonmember/customer recipients. All 34 local tests passed. User explicitly authorized clearing the current test project for a fresh test.
@@ -694,3 +698,5 @@ Update when requirements, scope, priorities, acceptance criteria, or agreed targ
 | 2026-10-11 | Added project-specific vendor member item name with editing; 32 local tests passed and live app restarted. |
 
 | 2026-10-11 | Required explicit assignment to added project members; 34 local tests passed and authorized test project reset completed. |
+
+| 2026-10-11 | Prominent assignee selection and dialog scroll reset; 34 automated tests and 34 slow visible workflow checks passed, plus selector visibility regression. |
