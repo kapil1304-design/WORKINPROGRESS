@@ -4,6 +4,10 @@ Last updated: 2026-10-11
 Status: Shared pilot core implemented; 24 automated tests passed; development continues on remaining features and operational readiness.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§8, 13–14 and Added Input.
 
+## Vendor member item name — 2026-10-11
+
+DEV06 Done: vendor item name added to creation/edit/storage/display. Syntax checks and all 32 local tests passed, covering per-project separation, edits, validation and legacy null handling. Database backup made and app restarted in session 20993 with existing data retained.
+
 ## Project PO number and authorized test reset — 2026-10-11
 
 DEV05 Done: project PO field/storage/display implemented, syntax and all 30 local tests passed. Authorized single test project and associated records cleared (verified zero projects, one owner retained); backup saved in ignored runtime/backups. App restarted in session 86331; health and served PO form verified.
@@ -617,3 +621,5 @@ Final application commit a44a004a3252dd333a59df27f36bf43f50f294f2 verified by su
 | 2026-10-11 | Added project-specific member departments and audited owner correction editing; all 29 local tests passed and live local app restarted with existing data preserved. |
 
 | 2026-10-11 | Added project PO number and cleared the explicitly authorized single test project; 30 tests passed and app restarted. |
+
+| 2026-10-11 | Added project-specific vendor member item name with editing; 32 local tests passed and live app restarted. |

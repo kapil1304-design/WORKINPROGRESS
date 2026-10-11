@@ -196,3 +196,19 @@ run('Project PO numbers persist, are optional, and reject invalid values', ({ sv
   assert.throws(() => svc.createProject(owner, { ...input, poNumber: 123 }), /PO number/);
   assert.throws(() => svc.createProject(owner, { ...input, poNumber: 'x'.repeat(101) }), /PO number/);
 });
+run('Vendor item names persist per project and can be corrected', ({ svc, owner, p, store }) => {
+  const m = svc.addMember(owner, p.id, { name: 'Supplier', email: 'supplier@example.test', organization: 'Supplier', role: 'vendor', itemName: ' Pneumatic cylinder ' });
+  assert.equal(m.itemName, 'Pneumatic cylinder');
+  svc.editMember(owner, p.id, m.id, { name: 'Supplier', email: 'supplier@example.test', organization: 'Supplier', role: 'vendor', itemName: 'Hydraulic cylinder', version: 1, userVersion: 1 });
+  assert.equal(store.get('members', m.id).itemName, 'Hydraulic cylinder');
+  const other = svc.createProject(owner, { name: 'Other project', customer: 'Customer', delivery: '2026-12-01' });
+  const second = svc.addMember(owner, other.id, { name: 'Supplier', email: 'supplier@example.test', role: 'vendor', itemName: 'Motor' });
+  assert.equal(second.itemName, 'Motor'); assert.equal(store.get('members', m.id).itemName, 'Hydraulic cylinder');
+});
+run('Vendor item validation rejects invalid values and ignores non-vendor fields', ({ svc, owner, p, people }) => {
+  assert.throws(() => svc.addMember(owner, p.id, { name: 'Supplier', email: 'bad-item@example.test', role: 'vendor', itemName: 123 }), /Item name/);
+  assert.throws(() => svc.memberItemName('x'.repeat(201), 'vendor'), /Item name/);
+  assert.equal(svc.memberItemName('Item', 'staff'), null);
+  const m = svc.membership(people.vendor, p.id);
+  assert.equal(svc.editMember(owner, p.id, m.id, { name: 'Vendor', email: people.vendor.email, organization: 'Vendor', role: 'vendor', version: 1, userVersion: 1 }).itemName, null);
+});

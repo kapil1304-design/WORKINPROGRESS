@@ -3,6 +3,10 @@
 Last updated: 2026-10-11
 Status: Shared Node/SQLite pilot implemented; 24 automated tests passed; actual email and deployment pending.
 
+## Vendor member item name — 2026-10-11
+
+On 2026-10-11 user requested Item name while adding Vendor members. Implemented optional project-specific itemName, editable later and displayed on vendor member cards. Current test project/members were preserved (no reset authorized in this turn). All 32 tests passed; app restarted in session 20993. Refresh, choose Vendor, and enter Item name.
+
 ## Project PO number and authorized test reset — 2026-10-11
 
 On 2026-10-11 user requested PO number during project creation and explicitly permitted clearing the one existing test project. Added optional PO number, persistent and visible to permitted internal/customer users. Performed scoped reset with ignored backup: zero projects remain and owner login retained. All 30 local tests passed. App running in session 86331. Refresh and create a new project; member department/edit functionality remains.
@@ -626,3 +630,5 @@ Final application commit a44a004a3252dd333a59df27f36bf43f50f294f2 verified by su
 | 2026-10-11 | Added project-specific member departments and audited owner correction editing; all 29 local tests passed and live local app restarted with existing data preserved. |
 
 | 2026-10-11 | Added project PO number and cleared the explicitly authorized single test project; 30 tests passed and app restarted. |
+
+| 2026-10-11 | Added project-specific vendor member item name with editing; 32 local tests passed and live app restarted. |

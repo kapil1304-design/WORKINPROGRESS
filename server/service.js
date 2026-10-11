@@ -107,13 +107,14 @@ export class Service {
     this.access(actor, pid, true); this.allow(actor, pid, ['owner']);
     const address = email(input.email), role = pick(input.role, roles, 'role');
     const memberDepartments = this.memberDepartments(input.departments, role);
+    const itemName = this.memberItemName(input.itemName, role);
     let u = this.s.all('users').find(u => u.email === address);
     if (u?.owner) fail('Owner already has access.');
     const kind = ['vendor', 'service', 'customer'].includes(role) ? role : 'internal';
     if (u && u.kind !== kind) fail('Existing member type differs. Use an account of the correct participant type.');
     if (!u) u = this.add('users', { email: address, name: text(input.name, 'Name', 100), organization: text(input.organization || 'Company', 'Organization', 150), kind, active: true, owner: false });
     if (this.membership(u, pid)) fail('Member already belongs to this project.', 409);
-    const m = this.add('members', { project: pid, user: u.id, role, departments: memberDepartments, version: 1, joinedAt: this.now() });
+    const m = this.add('members', { project: pid, user: u.id, role, departments: memberDepartments, itemName, version: 1, joinedAt: this.now() });
     this.audit(actor, pid, 'member.added', { member: u.id, role });
     this.notify(pid, [u.id], 'You were added to a project.'); return m;
   }
@@ -123,6 +124,10 @@ export class Service {
     if (['vendor', 'service', 'customer'].includes(role)) return [];
     const allowed = this.s.all('departments').length ? this.s.all('departments').map(d => d.name) : departments;
     return [...new Set(value.map(d => pick(d, allowed, 'department')))];
+  }
+  memberItemName(value, role) {
+    if (role !== 'vendor' || value == null || value === '') return null;
+    return text(value, 'Item name', 200);
   }
   editMember(actor, pid, id, input) {
     this.access(actor, pid, true); this.allow(actor, pid, ['owner']);
@@ -135,16 +140,17 @@ export class Service {
     const kind = ['vendor', 'service', 'customer'].includes(role) ? role : 'internal';
     if (kind !== u.kind && (this.s.all('members').some(other => other.user === u.id && other.id !== id) || this.s.all('tasks').some(t => t.assignee === u.id))) fail('Participant type cannot change while this member has other project memberships or assigned tasks.');
     const selectedDepartments = this.memberDepartments(input.departments, role);
-    const before = { name: u.name, email: u.email, organization: u.organization, role: m.role, departments: m.departments ?? [] };
+    const itemName = this.memberItemName(input.itemName === undefined ? m.itemName : input.itemName, role);
+    const before = { name: u.name, email: u.email, organization: u.organization, role: m.role, departments: m.departments ?? [], itemName: m.itemName ?? null };
     const oldEmail = u.email;
     u.name = text(input.name, 'Name', 100); u.email = address; u.organization = text(input.organization, 'Organization', 150); u.kind = kind; u.version = (u.version ?? 1) + 1;
-    m.role = role; m.departments = selectedDepartments; m.version = (m.version ?? 1) + 1;
+    m.role = role; m.departments = selectedDepartments; m.itemName = itemName; m.version = (m.version ?? 1) + 1;
     this.s.put('users', u); this.s.put('members', m);
     if (oldEmail !== address) {
       this.s.remove('otps', oldEmail); this.s.remove('otps', address);
       for (const session of this.s.all('sessions').filter(s => s.user === u.id)) this.s.remove('sessions', session.id);
     }
-    this.audit(actor, pid, 'member.edited', { member: u.id, before, after: { name: u.name, email: u.email, organization: u.organization, role: m.role, departments: m.departments } });
+    this.audit(actor, pid, 'member.edited', { member: u.id, before, after: { name: u.name, email: u.email, organization: u.organization, role: m.role, departments: m.departments, itemName: m.itemName } });
     return m;
   }
   removeMember(actor, pid, id) {
