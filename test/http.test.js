@@ -25,6 +25,13 @@ test('HTTP login, authenticated mutation, CSRF rejection, private runtime and lo
     assert.equal((await fetch(origin + '/api/projects', { method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookie }, body: '{}' })).status, 403);
     const created = await post('/api/projects', { name: 'HTTP pilot', customer: 'Customer', delivery: '2026-12-01' }, cookie); assert.equal(created.status, 200);
     const p = await created.json(); assert.ok(p.id);
+    const added = await post(`/api/projects/${p.id}/members`, { name: 'Staff typo', email: 'staff@example.test', organization: 'Company', role: 'staff', departments: ['Assembly', 'Testing'] }, cookie);
+    assert.equal(added.status, 200); const member = await added.json();
+    const edited = await post(`/api/projects/${p.id}/members/${member.id}`, { name: 'Corrected staff', email: 'corrected@example.test', organization: 'Company', role: 'staff', departments: ['Design'], version: 1, userVersion: 1 }, cookie);
+    assert.equal(edited.status, 200);
+    const afterEdit = await (await fetch(origin + '/api/state', { headers: { Cookie: cookie } })).json();
+    assert.deepEqual(afterEdit.members.find(m => m.id === member.id).departments, ['Design']);
+    assert.equal(afterEdit.users.find(u => u.id === member.user).email, 'corrected@example.test');
     await post('/api/auth/logout', {}, cookie); assert.equal((await fetch(origin + '/api/state', { headers: { Cookie: cookie } })).status, 401);
   } finally { await new Promise(resolve => app.server.close(resolve)); rmSync(dir, { recursive: true, force: true }); }
 });

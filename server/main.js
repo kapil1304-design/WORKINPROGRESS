@@ -56,7 +56,10 @@ export function createApp(config = {}) {
             if (path === '/api/departments') return service.addDepartment(actor, input);
             if (match) {
               const [, pid, action, id] = match;
-              if (action === 'members') return id && input.action === 'remove' ? service.removeMember(actor, pid, id) : service.addMember(actor, pid, input);
+              if (action === 'members') {
+                if (id) return input.action === 'remove' ? service.removeMember(actor, pid, id) : service.editMember(actor, pid, id, input);
+                return service.addMember(actor, pid, input);
+              }
               if (['close', 'reopen', 'stage'].includes(action)) return service.transition(actor, pid, action, input);
               if (action === 'tasks') return service.createTask(actor, pid, input);
               if (action === 'updates') return service.update(actor, pid, input, req.headers['idempotency-key']);

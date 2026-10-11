@@ -59,7 +59,7 @@ export class Service {
     return [...this.s.all('users').filter(u => u.owner && permitted.includes('owner')).map(u => u.id),
       ...this.s.all('members').filter(m => m.project === pid && permitted.includes(m.role)).map(m => m.user)].filter(id => this.s.get('users', id)?.active);
   }
-  publicUser(u) { return { id: u.id, name: u.name, email: u.email, organization: u.organization, kind: u.kind, owner: !!u.owner }; }
+  publicUser(u) { return { id: u.id, name: u.name, email: u.email, organization: u.organization, kind: u.kind, owner: !!u.owner, version: u.version ?? 1 }; }
   taskVisible(actor, t) {
     const role = this.role(actor, t.project);
     return !!role && (!['vendor', 'service'].includes(role) || t.assignee === actor.id);
@@ -105,15 +105,46 @@ export class Service {
   addMember(actor, pid, input) {
     this.access(actor, pid, true); this.allow(actor, pid, ['owner']);
     const address = email(input.email), role = pick(input.role, roles, 'role');
+    const memberDepartments = this.memberDepartments(input.departments, role);
     let u = this.s.all('users').find(u => u.email === address);
     if (u?.owner) fail('Owner already has access.');
     const kind = ['vendor', 'service', 'customer'].includes(role) ? role : 'internal';
     if (u && u.kind !== kind) fail('Existing member type differs. Use an account of the correct participant type.');
     if (!u) u = this.add('users', { email: address, name: text(input.name, 'Name', 100), organization: text(input.organization || 'Company', 'Organization', 150), kind, active: true, owner: false });
     if (this.membership(u, pid)) fail('Member already belongs to this project.', 409);
-    const m = this.add('members', { project: pid, user: u.id, role, joinedAt: this.now() });
+    const m = this.add('members', { project: pid, user: u.id, role, departments: memberDepartments, version: 1, joinedAt: this.now() });
     this.audit(actor, pid, 'member.added', { member: u.id, role });
     this.notify(pid, [u.id], 'You were added to a project.'); return m;
+  }
+  memberDepartments(value, role) {
+    if (value === undefined) value = [];
+    if (!Array.isArray(value) || value.some(d => typeof d !== 'string')) fail('Departments must be a list.');
+    if (['vendor', 'service', 'customer'].includes(role)) return [];
+    const allowed = this.s.all('departments').length ? this.s.all('departments').map(d => d.name) : departments;
+    return [...new Set(value.map(d => pick(d, allowed, 'department')))];
+  }
+  editMember(actor, pid, id, input) {
+    this.access(actor, pid, true); this.allow(actor, pid, ['owner']);
+    const m = this.s.get('members', id);
+    if (!m || m.project !== pid) fail('Membership not found.', 404);
+    const u = this.user(m.user);
+    if (input.version !== (m.version ?? 1) || input.userVersion !== (u.version ?? 1)) fail('Member details changed. Refresh and try again.', 409);
+    const address = email(input.email), role = pick(input.role, roles, 'role');
+    if (this.s.all('users').some(other => other.email === address && other.id !== u.id)) fail('This email already belongs to another member.', 409);
+    const kind = ['vendor', 'service', 'customer'].includes(role) ? role : 'internal';
+    if (kind !== u.kind && (this.s.all('members').some(other => other.user === u.id && other.id !== id) || this.s.all('tasks').some(t => t.assignee === u.id))) fail('Participant type cannot change while this member has other project memberships or assigned tasks.');
+    const selectedDepartments = this.memberDepartments(input.departments, role);
+    const before = { name: u.name, email: u.email, organization: u.organization, role: m.role, departments: m.departments ?? [] };
+    const oldEmail = u.email;
+    u.name = text(input.name, 'Name', 100); u.email = address; u.organization = text(input.organization, 'Organization', 150); u.kind = kind; u.version = (u.version ?? 1) + 1;
+    m.role = role; m.departments = selectedDepartments; m.version = (m.version ?? 1) + 1;
+    this.s.put('users', u); this.s.put('members', m);
+    if (oldEmail !== address) {
+      this.s.remove('otps', oldEmail); this.s.remove('otps', address);
+      for (const session of this.s.all('sessions').filter(s => s.user === u.id)) this.s.remove('sessions', session.id);
+    }
+    this.audit(actor, pid, 'member.edited', { member: u.id, before, after: { name: u.name, email: u.email, organization: u.organization, role: m.role, departments: m.departments } });
+    return m;
   }
   removeMember(actor, pid, id) {
     this.access(actor, pid, true); this.allow(actor, pid, ['owner']);

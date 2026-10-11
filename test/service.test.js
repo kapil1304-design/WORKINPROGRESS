@@ -154,3 +154,37 @@ test('SQLite preserves records across process-store restarts', () => {
 test('Timezone conversion uses Asia/Kolkata independently of server locale', () => {
   assert.deepEqual(localClock('2026-10-12T04:30:00Z'), { day: '2026-10-12', minute: 600, sunday: false });
 });
+run('Member departments are project-specific and support multiple selections', ({ svc, owner, people, p, store }) => {
+  const m = svc.membership(people.staff, p.id);
+  svc.editMember(owner, p.id, m.id, { name: 'Corrected name', email: people.staff.email, organization: 'Company', role: 'staff', departments: ['Assembly', 'Testing'], version: 1, userVersion: 1 });
+  assert.deepEqual(store.get('members', m.id).departments, ['Assembly', 'Testing']);
+  const other = svc.createProject(owner, { name: 'Second', customer: 'Customer', delivery: '2026-12-01' });
+  const second = svc.addMember(owner, other.id, { name: 'Ignored existing name', email: people.staff.email, organization: 'Company', role: 'staff', departments: ['Design'] });
+  assert.deepEqual(store.get('members', second.id).departments, ['Design']);
+  assert.deepEqual(store.get('members', m.id).departments, ['Assembly', 'Testing']);
+});
+run('Editing legacy members preserves task assignments and audits corrections', ({ svc, owner, people, p, store, task }) => {
+  const t = task(), m = svc.membership(people.staff, p.id); delete m.version; delete m.departments; store.put('members', m);
+  svc.editMember(owner, p.id, m.id, { name: 'Corrected staff', email: 'corrected@example.test', organization: 'Company', role: 'staff', departments: ['Mechanical'], version: 1, userVersion: 1 });
+  assert.equal(store.get('tasks', t.id).assignee, people.staff.id);
+  assert.equal(store.get('users', people.staff.id).email, 'corrected@example.test');
+  assert.ok(store.all('audit').some(a => a.action === 'member.edited' && a.detail.before.email === people.staff.email));
+});
+run('Member edits require owner permission and current versions', ({ svc, owner, people, p }) => {
+  const m = svc.membership(people.staff, p.id), input = { name: 'Staff', email: people.staff.email, organization: 'Company', role: 'staff', departments: ['Assembly'], version: 1, userVersion: 1 };
+  assert.throws(() => svc.editMember(people.pm, p.id, m.id, input), /not permitted/);
+  svc.editMember(owner, p.id, m.id, input);
+  assert.throws(() => svc.editMember(owner, p.id, m.id, input), /changed/);
+});
+run('Member correction rejects duplicate emails and invalid departments', ({ svc, owner, people, p, store }) => {
+  const m = svc.membership(people.staff, p.id), input = { name: 'Staff', email: people.staff.email, organization: 'Company', role: 'staff', departments: ['Assembly'], version: 1, userVersion: 1 };
+  assert.throws(() => svc.editMember(owner, p.id, m.id, { ...input, email: people.pm.email }), /already belongs/);
+  assert.throws(() => svc.editMember(owner, p.id, m.id, { ...input, departments: ['Unknown'] }), /Invalid department/);
+  assert.equal(store.get('members', m.id).version, 1);
+});
+run('Correcting email revokes old sessions and OTPs', ({ svc, owner, people, p, store }) => {
+  const m = svc.membership(people.staff, p.id);
+  store.put('sessions', { id: 'old-session', user: people.staff.id }); store.put('otps', { id: people.staff.email });
+  svc.editMember(owner, p.id, m.id, { name: 'Staff', email: 'new@example.test', organization: 'Company', role: 'staff', departments: [], version: 1, userVersion: 1 });
+  assert.equal(store.get('sessions', 'old-session'), null); assert.equal(store.get('otps', people.staff.email), null);
+});

@@ -2,3 +2,5 @@
 
 /* Prevent form content from expanding the mobile grid beyond the viewport. */
 .login-shell{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.login-form,.login-form>div,.login-form form,label{min-width:0}.login-form input{width:100%}@media(max-width:900px){.login-shell{grid-template-columns:minmax(0,1fr)}.login-form{padding:24px}}
+
+#member-departments{border:1px solid var(--line);border-radius:7px;padding:12px;display:grid;gap:8px}#member-departments legend{font-size:13px;color:#4b6876}

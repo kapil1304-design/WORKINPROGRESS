@@ -3,6 +3,10 @@
 Last updated: 2026-10-11
 Status: Shared Node/SQLite pilot implemented; 24 automated tests passed; actual email and deployment pending.
 
+## Member departments and editing — 2026-10-11
+
+User discovered missing member departments while testing and authorized adding them plus correction editing on 2026-10-11. Implemented project-specific multiple departments and owner-only member editing. Profile name/email/organization are shared across projects; role/departments are local to the project. Legacy members remain editable. Backup made before server restart; no user records reset. All 29 local tests passed. Current server session 6678. User should refresh and choose Edit member to set existing departments.
+
 ## Local Windows verification — 2026-10-11
 
 User confirmed Windows approval on 2026-10-11. Node.js v24.20.0 installed and locally verified: syntax checks and all 24 tests passed, server running at http://127.0.0.1:3000 (session 47835), local-mailbox OTP login and logout passed. Default synthetic owner is owner@example.test from newly created ignored .env. User may request a fresh code in the app and read it from runtime/mailbox; no real email sent. Desktop and exact 390px mobile login layout inspected. Real email provider and deployment remain pending.
@@ -614,3 +618,5 @@ Initial project push completed to https://github.com/kapil1304-design/WORKINPROG
 Final application commit a44a004a3252dd333a59df27f36bf43f50f294f2 verified by successful GitHub Actions run https://github.com/kapil1304-design/WORKINPROGRESS/actions/runs/38073438326; all 24 tests and syntax checks passed. Owner/project-manager notification views now show the responsible member and missed reporting date. Setup: DEVELOPMENT.md. Working tree was clean after code push. Local Node installer still waits for Windows administrator consent; no real provider email, browser visual QA or deployment claimed. Continue the remaining report workflows and production-readiness items from DEVELOPMENT.md without reopening routine discovery questions.
 
 | 2026-10-11 | Verified installed Node.js, local tests/startup and local OTP flow; inspected responsive login layout. |
+
+| 2026-10-11 | Added project-specific member departments and audited owner correction editing; all 29 local tests passed and live local app restarted with existing data preserved. |

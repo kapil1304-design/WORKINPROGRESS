@@ -1,8 +1,12 @@
 # WorkInProgress — Project and application rules
 
-Last updated: 2026-10-10
+Last updated: 2026-10-11
 Status: Initial documented rules; application rules are requirements/proposals awaiting implementation.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§5–12, 15, and Added Input; user's instruction to maintain six project documents.
+
+## Member departments and editing — 2026-10-11
+
+Only business owner edits membership/profile details on open projects. Departments do not imply permissions; role changes remain explicit owner grants. Validate configured department names and email uniqueness, reject stale profile/membership versions, record before/after values in audit history. Participant-type changes are blocked when other memberships or assignments would be invalidated.
 
 ## Verified shared application milestone — 2026-10-10
 
@@ -535,3 +539,5 @@ Update when an invariant, permission policy, operating convention, or stack-spec
 | 2026-10-10 | Implemented Node/SQLite shared web application, OTP adapter, scoped workflows, files and reminder jobs; tests written and runtime verification pending. |
 
 | 2026-10-10 | Recorded verified shared application milestone: GitHub Actions syntax check and all 24 tests passed; actual email/browser/local deployment checks remain pending. |
+
+| 2026-10-11 | Added project-specific member departments and audited owner correction editing; all 29 local tests passed and live local app restarted with existing data preserved. |

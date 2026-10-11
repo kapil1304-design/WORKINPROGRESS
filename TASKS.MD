@@ -4,6 +4,10 @@ Last updated: 2026-10-11
 Status: Shared pilot core implemented; 24 automated tests passed; development continues on remaining features and operational readiness.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§8, 13–14 and Added Input.
 
+## Member departments and editing — 2026-10-11
+
+DEV04 Done: member departments and correction form implemented, syntax checks and all 29 tests passed locally, including HTTP add/edit persistence, multiple project departments, legacy compatibility, negative permission/version/email/department checks and login invalidation. Database backup taken before restarting the live local app; existing data retained. App restarted in session 6678 and health/new form served successfully. User should refresh the page.
+
 ## Local Windows verification — 2026-10-11
 
 Local startup blocker resolved: Node.js v24.20.0 installed after Windows approval. Syntax checks and all 24 tests passed locally. Server started in session 47835 at http://127.0.0.1:3000; health/login endpoints HTTP 200; actual local-mailbox OTP request, verification, owner state and logout passed without logging the code. Desktop/mobile login layout inspected. Next work remains live email configuration, remaining report workflows, authenticated browser coverage and production readiness.
@@ -605,3 +609,5 @@ Initial project push completed to https://github.com/kapil1304-design/WORKINPROG
 Final application commit a44a004a3252dd333a59df27f36bf43f50f294f2 verified by successful GitHub Actions run https://github.com/kapil1304-design/WORKINPROGRESS/actions/runs/38073438326; all 24 tests and syntax checks passed. Owner/project-manager notification views now show the responsible member and missed reporting date. Setup: DEVELOPMENT.md. Working tree was clean after code push. Local Node installer still waits for Windows administrator consent; no real provider email, browser visual QA or deployment claimed. Continue the remaining report workflows and production-readiness items from DEVELOPMENT.md without reopening routine discovery questions.
 
 | 2026-10-11 | Verified installed Node.js, local tests/startup and local OTP flow; inspected responsive login layout. |
+
+| 2026-10-11 | Added project-specific member departments and audited owner correction editing; all 29 local tests passed and live local app restarted with existing data preserved. |
