@@ -2,6 +2,12 @@
 
 Last updated: 2026-10-11
 
+## iPhone recording copy — 2026-10-11
+
+User could not play playback.html on iPhone. The HTML is only a companion player and requires its video file; it is not a transferable standalone recording. Converted the existing WebM into runtime/full-test-2026-10-11/complete-walkthrough.mp4 using H.264 baseline/yuv420p and fast-start metadata. Whole-video decode verification passed; actual iPhone playback is not yet observed. Send the MP4 itself to iPhone Files. Companion HTML now references MP4. Conversion used an integrity-verified standalone FFmpeg package kept under ignored runtime/; no application runtime dependency added.
+
+Change log: 2026-10-11 — Added a portable MP4 copy for the user's iPhone.
+
 ## Recorded local test handoff — 2026-10-11
 
 User requested step-by-step localhost testing and a complete saved recording. Completed 39 visible UI steps and all 53 automated checks without failures. Video saved to runtime/full-test-2026-10-11/complete-walkthrough.webm (16 minutes 28 seconds, browser viewport, no audio); first/end playback decoded successfully. Same folder contains report.md, results.json, automated-tests.txt, playback.html and screenshots. Runtime evidence is intentionally not published to GitHub. scripts/walkthrough.js now supports RECORD_WALKTHROUGH=1 and WALKTHROUGH_OUTPUT; scripts/browser-recording.js captures the actual Chromium viewport. Added one synthetic project and configurable QA department; project finished closed with four verified tasks and actual simulated PDI. All prior projects preserved and a pre-test backup saved. Tests use local OTP mailbox, simulated inspection and controlled reminder clocks; no real email/production operation demonstrated. Next: user reviews recording and pilot behavior; production-readiness work remains listed in DEVELOPMENT.md.

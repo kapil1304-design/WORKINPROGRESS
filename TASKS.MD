@@ -2,6 +2,12 @@
 
 Last updated: 2026-10-11
 
+## Portable recording — 2026-10-11
+
+DEV10 follow-up: created iPhone-compatible H.264 baseline MP4 at runtime/full-test-2026-10-11/complete-walkthrough.mp4; full file decoded without errors. Local playback.html references MP4. The video must be transferred itself; HTML alone does not contain it. No physical iPhone playback claim. Recording and converter stay local/ignored.
+
+Change log: 2026-10-11 — Converted and verified a portable recording copy.
+
 ## Recorded full local walkthrough — 2026-10-11
 
 DEV10 completed: slow visible localhost lifecycle test with continuous browser-viewport recording. All 39 UI steps passed, including OTP roles, project/PO, member edits/departments/vendor item, explicit assignment, configurable department, acknowledgements/dispute, blockers/member status, notifications, scope/date/dispatch approvals, returns and verification, supply quantities, customer privacy/responses, photo/PDF upload/download, PDI planning/confirmation, stages, closure and owner reopening. All 53 automated tests passed; reminder timing, access-denial, expiry, persistence and forecast edge cases were checked using controlled test clocks/fixtures. Syntax check passed. Recording decoded at five seconds and near the end (987.638 seconds total).
