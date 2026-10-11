@@ -1,27 +1,37 @@
 import { createHash } from 'node:crypto';
-
-export const phases = ['prePdi', 'postPdi', 'postDelivery'];
-export function addDays(day, days) {
-  const d = new Date(`${day}T00:00:00Z`);
-  if (!Number.isFinite(d.getTime())) throw Error('Invalid scheduling date.');
-  d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(0, 10);
-}
-export function indiaDay(instant) {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(instant));
-}
-export function taskPhase(t) { return t.phase || (t.department === 'Installation' ? 'postDelivery' : 'prePdi'); }
+import { calculateTaskSchedules } from './dependencies.js';
+import { addDays, indiaDay, taskPhase } from './calendar.js';
+export { addDays, indiaDay, phases, taskPhase } from './calendar.js';
 export function inspectionSignature(tasks) {
   return createHash('sha256').update(JSON.stringify(tasks.map(t => [t.id, t.status, t.verifiedAt || null]).sort((a, b) => a[0].localeCompare(b[0])))).digest('hex');
 }
 export function milestoneForecast(project, tasks, now) {
+  let taskSchedules;
+  try {
+    taskSchedules = calculateTaskSchedules(project,tasks,now);
+    const projected = () => tasks.map(t=>({ ...t, due:taskSchedules[t.id].finishDate||'', forecast:taskSchedules[t.id].finishDate||'', dependencyCompletionValid:taskSchedules[t.id].completionValid }));
+    let milestones=baseMilestones(project,projected(),now);
+    taskSchedules=calculateTaskSchedules(project,tasks,now,{postPdi:milestones.pdiFinish ? addDays(milestones.pdiFinish,1) : null});
+    milestones=baseMilestones(project,projected(),now);
+    taskSchedules=calculateTaskSchedules(project,tasks,now,{postPdi:milestones.pdiFinish ? addDays(milestones.pdiFinish,1) : null, postDelivery:milestones.delivery ? addDays(milestones.delivery,1) : null});
+    if(tasks.some(t=>taskSchedules[t.id].dependencyDriven&&taskSchedules[t.id].finishDelayDays>0)) milestones.warnings.push('Dependency delays have moved following tasks. Approved target dates remain unchanged.');
+    if(tasks.some(t=>t.status==='Completed'&&!taskSchedules[t.id].completionValid)) milestones.warnings.push('Verified work has an unfinished prerequisite; review completion and inspection readiness.');
+    if(tasks.some(t=>t.status!=='Completed'&&(t.lastUpdate?t.forecast||t.due:t.due)<indiaDay(now))) milestones.warnings.push('Unfinished work has dates in the past; update its forecast.');
+    if(milestones.warnings.length&&milestones.state==='Calculated forecast') milestones.state='Forecast needs review';
+    return {...milestones,taskSchedules};
+  } catch(error) {
+    const m=baseMilestones(project,[],now);return {...m,pdiReady:false,pdiValid:false,dispatchReady:false,warnings:[error.message],taskSchedules:{}};
+  }
+}
+function baseMilestones(project, tasks, now) {
   const today = indiaDay(now), gap = project.pdiDispatchDays ?? 7;
   const before = tasks.filter(t => taskPhase(t) === 'prePdi');
   const after = tasks.filter(t => taskPhase(t) === 'postPdi');
   const relevant = [...before, ...after];
   const missingDates = relevant.some(t => !/^\d{4}-\d{2}-\d{2}$/.test(t.lastUpdate ? t.forecast || t.due || '' : t.due || ''));
-  const ready = before.length > 0 && !!project.planningComplete && before.every(t => t.status === 'Completed' && t.verifiedAt);
+  const ready = before.length > 0 && !!project.planningComplete && before.every(t => t.status === 'Completed' && t.verifiedAt && t.dependencyCompletionValid !== false);
   const pdiValid = ready && !!project.pdiActualDate && project.pdiCompletedAgainst === inspectionSignature(before);
-  const dispatchReady = pdiValid && after.every(t => t.status === 'Completed' && t.verifiedAt);
+  const dispatchReady = pdiValid && after.every(t => t.status === 'Completed' && t.verifiedAt && t.dependencyCompletionValid !== false);
   const dispatchTarget = project.dispatchTarget || (project.delivery ? addDays(project.delivery, -3) : null);
   const base = { dispatchTarget, deliveryTarget: project.delivery, pdiDispatchDays: gap, pdiDurationDays: 1, transitDays: 3, planningComplete: !!project.planningComplete, pdiReady: ready, pdiValid, dispatchReady, requiredTasks: before.length, verifiedTasks: before.filter(t => t.status === 'Completed' && t.verifiedAt).length, postPdiTasks: after.length, excludedTasks: tasks.filter(t => taskPhase(t) === 'postDelivery').length, pdiActualDate: project.pdiActualDate || null, warnings: [], calculatedAt: now };
   if (!before.length || missingDates) return { ...base, state: 'Plan incomplete', workReady: null, pdiStart: null, pdiFinish: null, dispatch: null, delivery: null, dispatchVarianceDays: null, deliveryVarianceDays: null };

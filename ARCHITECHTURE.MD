@@ -2,6 +2,12 @@
 
 Last updated: 2026-10-11
 
+## Task dependencies and delay reporting — 2026-10-11
+
+server/calendar.js owns calendar helpers; server/dependencies.js validates project-local directed acyclic links and derives task start/finish forecasts. server/schedule.js combines the dependency plan with PDI, post-PDI packing and post-delivery installation anchors. Task records add startDate, originalStartDate and durationDays, using existing dependencies IDs. Legacy tasks default to one day on their due date. Task snapshots expose permitted computed dates; external dependency identifiers are filtered. Task schedule POST edits planning parameters with role/version checks; POST /api/tasks/:id/dependency-reminder creates status requests, scoped notifications and an audit record transactionally. Closed task forecasts freeze with milestone snapshots; legacy closed snapshots derive task dates at closure time.
+
+Change log: 2026-10-11 — Implemented task dependencies, parallel planning and scoped prerequisite reminders.
+
 ## Automatic PDI, dispatch and delivery — 2026-10-11
 
 server/schedule.js derives milestones from task phases (prePdi, postPdi, postDelivery), approved dates, latest member forecasts and verified completion dates. Project records hold dispatch targets/original targets, editable allowance, work-list confirmation and an actual PDI signature. Legacy delivery targets derive dispatch minus three days. POST project milestones/pdi and task schedule routes enforce roles and versions. Closed projects persist a milestone snapshot; reopening recomputes. Customers receive safe milestone projections; vendor/service accounts receive no project schedule.

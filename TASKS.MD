@@ -2,6 +2,12 @@
 
 Last updated: 2026-10-11
 
+## Task dependencies and delay reporting — 2026-10-11
+
+DEV11 completed: dependency planning, parallel branches, automatic delay propagation and responsible-member prerequisite reminders. Source: server/calendar.js, server/dependencies.js, server/schedule.js, server/service.js, web/client.js. Evidence: test/dependencies.test.js and HTTP integration; 76 automated tests and syntax check passed. Nine visible local checks passed in runtime/dependency-test-1791727213001/results.json: select two prerequisites, simultaneous starts, reject cycle, three-day delay propagates to Task 5 and milestones, unchanged parallel work/targets, reminders and scoped team reports. Recording saved as dependency-walkthrough.webm and converted/fully decoded as dependency-walkthrough.mp4. Prior data backed up and retained; only the synthetic QA project was closed. Reusable templates, drawing revisions, exports and production readiness remain pending.
+
+Change log: 2026-10-11 — Implemented task dependencies, parallel planning and scoped prerequisite reminders.
+
 ## Portable recording — 2026-10-11
 
 DEV10 follow-up: created iPhone-compatible H.264 baseline MP4 at runtime/full-test-2026-10-11/complete-walkthrough.mp4; full file decoded without errors. Local playback.html references MP4. The video must be transferred itself; HTML alone does not contain it. No physical iPhone playback claim. Recording and converter stay local/ignored.

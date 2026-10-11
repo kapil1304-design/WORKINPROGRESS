@@ -2,6 +2,12 @@
 
 Last updated: 2026-10-11
 
+## Task dependencies and delay reporting — 2026-10-11
+
+Use finish-to-start links: successor forecast starts no earlier than the next calendar day after every prerequisite forecast finish, its own planned start or phase release. Duration is inclusive: start + duration - 1. Latest progress forecast or verified finish drives the chain. Independent work runs in parallel; slack absorbs delays, so only controlling delays move milestones. Circular/self/cross-project links and earlier-phase tasks depending on later-phase work are rejected. Completion submission and verification require verified prerequisites; status reporting and preparatory progress remain available. Reopened prerequisites invalidate downstream readiness without erasing truthful completion history. Managers edit plans with reason and current version; approved due dates retain existing two-person approval. Assignee or manager can remind unfinished prerequisite owners; owner/PM/internal team receive delay report, external reminders hide unrelated identities/work.
+
+Change log: 2026-10-11 — Implemented task dependencies, parallel planning and scoped prerequisite reminders.
+
 ## Automatic PDI, dispatch and delivery — 2026-10-11
 
 All dates use calendar-day arithmetic; actual completion dates use Asia/Kolkata. Forecast PDI occupies the next calendar day after the latest required work date (implementation convention). Default dispatch allowance is seven days from PDI completion; delivery is dispatch plus three days. Later post-PDI corrections can extend dispatch; post-delivery installation cannot. Owner/PM confirm the work list and physically completed inspection; all pre-PDI tasks must be verified first. Changed work invalidates inspection readiness. Owner/PM edit the allowance without changing targets. PM initiates dispatch target revisions and owner approves; customer response remains optional. Closed schedules freeze until reopening.

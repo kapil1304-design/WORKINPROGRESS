@@ -2,6 +2,12 @@
 
 Last updated: 2026-10-11
 
+## Task dependencies and delay reporting — 2026-10-11
+
+Assign task now has Planned start date, Duration (calendar days), a computed initial target finish, and a checklist labelled Tasks that must finish before this task starts. Select Tasks 2 and 4 for Task 5; unticked independent work can run simultaneously. Existing task Plan / dependencies edits links/start/duration/phase with a reason. Rows show prerequisite labels, waiting count, planned start, duration, forecast start/finish and days after target. Responsible member uses Request prerequisite update to send reminders and an internal delay report. Later-phase prerequisites are disabled. Existing task dates are retained; users should set realistic durations and links before confirming the complete pre-PDI plan.
+
+Change log: 2026-10-11 — Implemented task dependencies, parallel planning and scoped prerequisite reminders.
+
 ## Automatic PDI, dispatch and delivery — 2026-10-11
 
 New project asks for Target dispatch and previews Target delivery (+3 days). Task forms require explicit assignee and expose Scheduling phase: before PDI, after PDI/packing, or after delivery/installation. Project overview shows work-ready date, one-day PDI, dispatch, delivery, approved targets, variance and readiness warnings. Owner/PM use Edit PDI/dispatch allowance to adjust days and confirm the work list; Confirm PDI completed stays disabled until required work is verified. Managers can correct a task phase with an audited reason.

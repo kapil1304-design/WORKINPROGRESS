@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { addDays, indiaDay, inspectionSignature, milestoneForecast, phases, taskPhase } from './schedule.js';
+import { taskPlan, validateDependencies } from './dependencies.js';
 
 export class AppError extends Error {
   constructor(message, status = 400) { super(message); this.status = status; }
@@ -85,7 +86,13 @@ export class Service {
     const tasks = this.s.all('tasks').filter(t => ids.has(t.project) && this.taskVisible(actor, t));
     const taskIds = new Set(tasks.map(t => t.id));
     const updates = this.s.all('updates').filter(u => ids.has(u.project) && (!u.task || taskIds.has(u.task)) && (this.isInternal(actor, u.project) || this.role(actor, u.project) === 'customer' || u.user === actor.id));
-    const filteredTasks = tasks.map(t => this.role(actor, t.project) === 'customer' ? { id: t.id, project: t.project, title: t.customerTitle || `${t.department} activity`, department: t.department, phase: taskPhase(t), due: t.due, baseline: t.baseline, forecast: t.forecast, status: t.status, verifiedAt: t.verifiedAt, version: t.version } : t);
+    const schedules = new Map(projects.map(p=>[p.id,this.schedule(p.id)]));
+    const filteredTasks = tasks.map(t => {
+      const external = ['vendor','service'].includes(this.role(actor,t.project));
+      const dependencies = (t.dependencies||[]).filter(id=>taskIds.has(id));
+      const schedule = schedules.get(t.project).taskSchedules?.[t.id];
+      return this.role(actor,t.project)==='customer' ? { id:t.id,project:t.project,title:t.customerTitle||`${t.department} activity`,department:t.department,phase:taskPhase(t),due:t.due,baseline:t.baseline,forecast:t.forecast,status:t.status,verifiedAt:t.verifiedAt,version:t.version,dependencies,schedule,...taskPlan(t) } : {...t,...taskPlan(t),dependencies:external?dependencies:t.dependencies||[],hiddenDependencyCount:external?(t.dependencies||[]).length-dependencies.length:0,schedule};
+    });
     const filteredUpdates = updates.map(u => this.role(actor, u.project) === 'customer' ? { id: u.id, project: u.project, task: u.task, department: u.department, at: u.at, status: u.status } : u);
     const members = this.s.all('members').filter(m => ids.has(m.project) && this.isInternal(actor, m.project));
     const userIds = new Set(members.map(m => m.user));
@@ -182,13 +189,20 @@ export class Service {
     if (!this.membership(assignee, pid) || this.role(assignee, pid) === 'customer') fail('Assignee must be an execution member added to this project.');
     const department = pick(input.department, this.snapshot(actor).departments, 'department');
     const phase = input.phase === undefined ? (department === 'Installation' ? 'postDelivery' : 'prePdi') : pick(input.phase, phases, 'scheduling phase');
-    const dependencies = Array.isArray(input.dependencies) ? input.dependencies : [];
-    for (const id of dependencies) { const t = this.task(actor, id); if (t.project !== pid) fail('Dependency must belong to this project.'); }
-    const t = this.add('tasks', { project: pid, title: text(input.title, 'Task title', 200), customerTitle: input.customerTitle ? text(input.customerTitle, 'Customer label', 200) : null, department, phase, assignee: assignee.id, type: pick(input.type, ['Internal', 'Purchase', 'Service'], 'work type'), scope: text(input.scope || input.title, 'Scope'), criteria: text(input.criteria || 'Physical verification by authorized verifier', 'Acceptance criteria'), due: date(input.due, 'target date'), baseline: input.due, forecast: input.due, status: 'Not started', dependencies, acknowledgement: 'Pending', createdAt: this.now(), version: 1, requiredQuantity: input.type === 'Purchase' ? this.quantity(input.requiredQuantity || 1) : null, dispatched: 0, received: 0, accepted: 0, rejected: 0 });
+    const dependencies = this.dependencyList(input.dependencies ?? []);
+    const durationDays = this.duration(input.durationDays ?? 1);
+    const due = date(input.due || (input.startDate ? addDays(date(input.startDate,'planned start date'),durationDays-1) : null),'target date');
+    const startDate = input.startDate ? date(input.startDate,'planned start date') : addDays(due,1-durationDays);
+    const t = { id:randomUUID(), project: pid, title: text(input.title, 'Task title', 200), customerTitle: input.customerTitle ? text(input.customerTitle, 'Customer label', 200) : null, department, phase, assignee: assignee.id, type: pick(input.type, ['Internal', 'Purchase', 'Service'], 'work type'), scope: text(input.scope || input.title, 'Scope'), criteria: text(input.criteria || 'Physical verification by authorized verifier', 'Acceptance criteria'), due, baseline:due, forecast:due, startDate, originalStartDate:startDate, durationDays, status: 'Not started', dependencies, acknowledgement: 'Pending', createdAt: this.now(), version: 1, requiredQuantity: input.type === 'Purchase' ? this.quantity(input.requiredQuantity || 1) : null, dispatched: 0, received: 0, accepted: 0, rejected: 0 };
+    this.validateTaskGraph([...this.s.all('tasks').filter(t=>t.project===pid),t]); this.s.put('tasks',t);
     if (phase === 'prePdi') { const p = this.s.get('projects', pid); p.planningComplete = false; p.version++; this.s.put('projects', p); }
     this.audit(actor, pid, 'task.created', { task: t.id }); this.notify(pid, [assignee.id], 'A task has been assigned to you.'); return t;
   }
-  schedule(pid) { const p = this.s.get('projects', pid); if (p.closed && p.closedMilestones) return p.closedMilestones; return milestoneForecast(p, this.s.all('tasks').filter(t => t.project === pid), p.closed ? p.closedAt || this.now() : this.now()); }
+  schedule(pid) {
+    const p=this.s.get('projects',pid), tasks=this.s.all('tasks').filter(t=>t.project===pid);
+    if(p.closed&&p.closedMilestones) return {...p.closedMilestones,taskSchedules:p.closedMilestones.taskSchedules||milestoneForecast(p,tasks,p.closedAt||p.closedMilestones.calculatedAt||this.now()).taskSchedules};
+    return milestoneForecast(p,tasks,p.closed?p.closedAt||this.now():this.now());
+  }
   milestoneSettings(actor, pid, input) {
     const p = this.access(actor, pid, true); this.allow(actor, pid, ['owner', 'pm']); this.version(p, input);
     const days = Number(input.pdiDispatchDays);
@@ -201,10 +215,35 @@ export class Service {
   }
   taskSchedule(actor, id, input) {
     const t = this.task(actor, id, true); this.allow(actor, t.project, ['owner', 'pm', 'purchase']); this.version(t, input);
-    const before = taskPhase(t); t.phase = pick(input.phase, phases, 'scheduling phase');
-    const reason = text(input.reason, 'Scheduling phase change reason'); t.version++; this.s.put('tasks', t);
-    const p = this.s.get('projects', t.project); p.planningComplete = false; p.version++; this.s.put('projects', p);
-    this.audit(actor, t.project, 'task.phase', { task: id, before, after: t.phase, reason }); return t;
+    const before = {phase:taskPhase(t),dependencies:t.dependencies||[],...taskPlan(t)};
+    t.phase = input.phase===undefined ? taskPhase(t) : pick(input.phase, phases, 'scheduling phase');
+    t.startDate = input.startDate===undefined ? taskPlan(t).startDate : date(input.startDate,'planned start date');
+    t.durationDays = input.durationDays===undefined ? taskPlan(t).durationDays : this.duration(input.durationDays);
+    t.dependencies = input.dependencies===undefined ? t.dependencies||[] : this.dependencyList(input.dependencies);
+    this.validateTaskGraph(this.s.all('tasks').filter(other=>other.project===t.project).map(other=>other.id===id?t:other));
+    if(['Completed','Submitted for verification'].includes(t.status) && !t.dependencies.every(id=>this.schedule(t.project).taskSchedules?.[id]?.completionValid)) fail('Completed or submitted work cannot be linked to unfinished prerequisites.',409);
+    const reason = text(input.reason, 'Task planning change reason'); t.version++; this.s.put('tasks', t);
+    const p = this.s.get('projects', t.project); if(before.phase==='prePdi'||t.phase==='prePdi')p.planningComplete = false; p.version++; this.s.put('projects', p);
+    this.audit(actor, t.project, 'task.planning', { task: id, before, after:{phase:t.phase,dependencies:t.dependencies,...taskPlan(t)}, reason }); return t;
+  }
+  dependencyList(value) { if(!Array.isArray(value)||value.length>100||value.some(id=>typeof id!=='string'||!id.trim())||new Set(value).size!==value.length) fail('Select up to 100 distinct prerequisite tasks.'); return value; }
+  duration(value) { const n=Number(value); if(!Number.isInteger(n)||n<1||n>3650) fail('Task duration must be 1–3650 calendar days.'); return n; }
+  validateTaskGraph(tasks) { try { validateDependencies(tasks); } catch(e) { fail(e.message); } }
+  requestDependencies(actor,id,input) {
+    const t=this.task(actor,id,true);
+    if(t.assignee!==actor.id&&!['owner','pm','purchase'].includes(this.role(actor,t.project))) fail('Only the responsible member or a task manager can request prerequisite updates.',403);
+    if(t.status==='Completed') fail('This task is already completed.',409);
+    const reason=text(input.reason,'Dependency reminder reason');
+    const schedule=this.schedule(t.project), waiting=(t.dependencies||[]).map(id=>this.s.get('tasks',id)).filter(p=>p&&!schedule.taskSchedules?.[p.id]?.completionValid);
+    if(!waiting.length) fail('There are no unfinished prerequisite tasks.',409);
+    const request=this.add('dependencyRequests',{project:t.project,task:t.id,user:actor.id,prerequisites:waiting.map(p=>p.id),reason,at:this.now()});
+    for(const prerequisite of waiting) {
+      this.add('statusRequests',{project:t.project,target:prerequisite.assignee,requester:actor.id,reason:'A following task needs your prerequisite work update.',at:this.now(),resolved:false,dependencyRequest:request.id});
+      const privateMessage=['owner','pm','purchase','staff'].includes(this.role(this.user(prerequisite.assignee),t.project)) ? `Prerequisite update requested: ${prerequisite.title}. A following task is waiting.` : 'A task depending on your assigned work is waiting. Please update your progress and forecast.';
+      this.notify(t.project,[prerequisite.assignee],privateMessage);
+    }
+    this.notify(t.project,this.recipients(t.project,['owner','pm','purchase','staff']),`Dependency delay reported: ${t.title} is waiting for ${waiting.map(p=>p.title).join(', ')}. ${reason}`);
+    this.audit(actor,t.project,'dependencies.reminded',{task:id,request:request.id,prerequisites:request.prerequisites}); return this.isInternal(actor,t.project) ? request : {id:request.id,project:t.project,task:id,at:request.at,prerequisiteCount:waiting.length};
   }
   completePdi(actor, pid, input) {
     const p = this.access(actor, pid, true); this.allow(actor, pid, ['owner', 'pm']); this.version(p, input);
@@ -228,9 +267,9 @@ export class Service {
     if ((status === 'Blocked' || forecast && t && forecast > t.due || input.noProgress) && !input.reason?.trim()) fail('A blocker, no progress or late forecast requires a reason.');
     if (status === 'Blocked' && !input.resolver) fail('Blocked work needs a resolver.');
     if (input.resolver && !this.recipients(pid, ['owner', 'pm', 'purchase', 'staff']).includes(input.resolver)) fail('Resolver must be an internal project member.');
-    if (t && status === 'Submitted for verification' && t.dependencies.some(id => this.s.get('tasks', id)?.status !== 'Completed')) fail('Dependencies must be verified before submission.');
+    if (t && status === 'Submitted for verification' && !this.schedule(pid).taskSchedules?.[t.id]?.dependenciesReady) fail('Dependencies must be verified before submission.');
     const u = this.add('updates', { project: pid, user: actor.id, task: t?.id ?? null, department: t?.department ?? 'Project', status, completed, pending, nextAction, forecast, reason: input.reason || '', resolver: input.resolver || null, at: this.now(), key: key || null });
-    if (t) { t.status = status; t.forecast = forecast; t.version++; t.lastUpdate = u.at; this.s.put('tasks', t); }
+    if (t) { t.status = status; t.forecast = forecast; if(status==='In progress'||status==='Submitted for verification')t.startedAt??=u.at; t.version++; t.lastUpdate = u.at; this.s.put('tasks', t); }
     for (const n of this.s.all('notifications').filter(n => n.project === pid && n.subject === actor.id && n.category === 'missing-update')) this.s.put('notifications', { ...n, resolved: true });
     for (const r of this.s.all('statusRequests').filter(r => r.project === pid && r.target === actor.id && !r.resolved)) this.s.put('statusRequests', { ...r, resolved: true, response: u.id });
     this.audit(actor, pid, 'status.updated', { update: u.id }); return u;
@@ -238,7 +277,7 @@ export class Service {
   verify(actor, id, input) {
     const t = this.task(actor, id, true); this.allow(actor, t.project, t.type === 'Purchase' ? ['purchase'] : ['owner', 'pm']); this.version(t, input);
     if (input.action === 'reopen') { if (t.status !== 'Completed') fail('Task is not completed.'); t.status = 'In progress'; }
-    else { if (t.status !== 'Submitted for verification') fail('Task is not awaiting verification.', 409); if (input.action === 'return') { text(input.reason, 'Return reason'); t.status = 'In progress'; } else { if (input.physicallyChecked !== true) fail('Confirm physical verification.'); if (t.type === 'Purchase' && t.accepted < t.requiredQuantity) fail('Purchase completion requires the full accepted usable quantity.'); t.status = 'Completed'; t.verifiedBy = actor.id; t.verifiedAt = this.now(); } }
+    else { if (t.status !== 'Submitted for verification') fail('Task is not awaiting verification.', 409); if (input.action === 'return') { text(input.reason, 'Return reason'); t.status = 'In progress'; } else { if (!this.schedule(t.project).taskSchedules?.[t.id]?.dependenciesReady) fail('Dependencies must be verified before accepting completion.',409); if (input.physicallyChecked !== true) fail('Confirm physical verification.'); if (t.type === 'Purchase' && t.accepted < t.requiredQuantity) fail('Purchase completion requires the full accepted usable quantity.'); t.status = 'Completed'; t.verifiedBy = actor.id; t.verifiedAt = this.now(); } }
     t.version++; this.s.put('tasks', t); this.audit(actor, t.project, `task.${input.action || 'verified'}`, { task: id, reason: input.reason || null }); return t;
   }
   acknowledge(actor, id, input) {

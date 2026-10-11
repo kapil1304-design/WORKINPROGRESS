@@ -34,6 +34,13 @@ test('HTTP login, authenticated mutation, CSRF rejection, private runtime and lo
     assert.equal(afterEdit.users.find(u => u.id === member.user).email, 'corrected@example.test');
     const milestone = await post(`/api/projects/${p.id}/milestones`, { version: afterEdit.projects[0].version, pdiDispatchDays: 3, planningComplete: true }, cookie);
     assert.equal(milestone.status, 200); assert.equal((await milestone.json()).pdiDispatchDays, 3);
+    const prerequisiteResponse=await post(`/api/projects/${p.id}/tasks`,{title:'Prerequisite',department:'Assembly',type:'Internal',assignee:member.user,startDate:'2026-12-01',durationDays:2},cookie);
+    assert.equal(prerequisiteResponse.status,200);const prerequisite=await prerequisiteResponse.json();
+    const followingResponse=await post(`/api/projects/${p.id}/tasks`,{title:'Following',department:'Assembly',type:'Internal',assignee:member.user,startDate:'2026-12-03',durationDays:3,dependencies:[prerequisite.id]},cookie);
+    assert.equal(followingResponse.status,200);const following=await followingResponse.json();
+    const planEdit=await post(`/api/tasks/${prerequisite.id}/schedule`,{version:prerequisite.version,durationDays:5,reason:'Longer work estimate'},cookie);assert.equal(planEdit.status,200);
+    const reminder=await post(`/api/tasks/${following.id}/dependency-reminder`,{reason:'Please confirm readiness'},cookie);assert.equal(reminder.status,200);
+    const scheduled=await(await fetch(origin+'/api/state',{headers:{Cookie:cookie}})).json();assert.equal(scheduled.tasks.find(t=>t.id===following.id).schedule.startDate,'2026-12-06');assert.equal(scheduled.tasks.find(t=>t.id===following.id).schedule.finishDate,'2026-12-08');
     await post('/api/auth/logout', {}, cookie); assert.equal((await fetch(origin + '/api/state', { headers: { Cookie: cookie } })).status, 401);
   } finally { await new Promise(resolve => app.server.close(resolve)); rmSync(dir, { recursive: true, force: true }); }
 });

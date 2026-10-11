@@ -69,6 +69,8 @@ export function createApp(config = {}) {
               if (action === 'milestones') return service.milestoneSettings(actor, pid, input);
               if (action === 'pdi') return service.completePdi(actor, pid, input);
             }
+            const reminder = /^\/api\/tasks\/([^/]+)\/dependency-reminder$/.exec(path);
+            if (reminder) return service.requestDependencies(actor,reminder[1],input);
             const task = /^\/api\/tasks\/([^/]+)\/(verify|acknowledge|supply|schedule)$/.exec(path);
             if (task) return task[2] === 'verify' ? service.verify(actor, task[1], input) : task[2] === 'supply' ? service.supply(actor, task[1], input) : task[2] === 'schedule' ? service.taskSchedule(actor, task[1], input) : service.acknowledge(actor, task[1], input);
             const change = /^\/api\/changes\/([^/]+)\/(decide|respond)$/.exec(path);

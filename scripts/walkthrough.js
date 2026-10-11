@@ -84,7 +84,7 @@ async function taskInput(title, role, type = 'Internal', quantity = '1') {
   await field('assignee', person.id);
   await assert((await evaluate('document.getElementById("assignee-summary").textContent')).includes(person.name), 'Selected assignee summary missing.');
   await field('title', title); await field('customerTitle', title); await field('department', type === 'Purchase' ? 'Procurement' : type === 'Service' ? 'Installation' : 'Assembly');
-  await field('type', type); await field('due', '2026-12-15'); await field('scope', `Complete ${title.toLowerCase()} for the test machine.`); await field('criteria', 'Test evidence and physical confirmation by authorized verifier.'); await field('requiredQuantity', quantity);
+  await field('type', type); await field('startDate','2026-12-15'); await field('durationDays','1'); await field('due', '2026-12-15'); await field('scope', `Complete ${title.toLowerCase()} for the test machine.`); await field('criteria', 'Test evidence and physical confirmation by authorized verifier.'); await field('requiredQuantity', quantity);
 }
 async function taskByTitle(title) { return (await state()).tasks.find(t => t.project === pid && t.title === title); }
 async function updateTask(title) {

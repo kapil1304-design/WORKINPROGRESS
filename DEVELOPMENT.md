@@ -38,6 +38,8 @@ The application has no third-party runtime packages. It uses Node's HTTP, crypto
 
 ## Implemented workflows
 
+- Task dependency planning: start dates and inclusive calendar-day durations, multiple prerequisite checkboxes, parallel branches, slack-aware delay propagation into PDI/dispatch/delivery, circular/phase checks and responsible-member reminder/report action. Legacy tasks default to one day on their due date; edit Plan / dependencies for realistic estimates. Planning edits change forecasts; target-date revisions retain approvals. Nine targeted browser checks passed; MP4 evidence is local in runtime/dependency-test-1791727213001/.
+
 - Automatic milestones: latest required work date, next-day one-day PDI, editable default seven-day dispatch allowance and delivery three days after dispatch. Task phases separate pre-PDI work, post-PDI corrections/packing and post-delivery installation. Owner/PM confirm the work list and actual inspection; verified work is required. Forecasts and approved targets remain separate; closed schedules freeze until reopening. New projects enter a dispatch target and preview delivery. Verified with 53 automated tests and targeted local browser checks on 2026-10-11.
 
 - Email OTP authentication, expiry, attempt/resend limits, hashed session tokens, HTTP-only cookies and logout.
@@ -57,6 +59,6 @@ Each member reports per project, not three times for every task. A task update a
 
 ## Remaining work
 
-Not a completed production release. Remaining features include module/template UI, editable dependency graphs and circular-dependency checks, drawing revision acknowledgements, notification administration, configurable role capabilities, deterministic report exports, immutable report snapshots, notification failure dashboards, customer safe-label review, backup/restore automation and demonstrated restoration, production hosting and operational ownership. Actual email delivery and visual browser QA need verification. No AI, WhatsApp, ERP or mobile integration is included.
+Not a completed production release. Remaining features include module/template UI, drawing revision acknowledgements, notification administration, configurable role capabilities, deterministic report exports, immutable report snapshots, notification failure dashboards, customer safe-label review, backup/restore automation and demonstrated restoration, production hosting and operational ownership. Local visual walkthroughs have passed; actual email delivery, representative participant usability and production operation still need verification. No AI, WhatsApp, ERP or mobile integration is included.
 
 The pilot progress indicator counts visible verified tasks; it is not the report's proposed weighted physical-progress measure and is labelled accordingly. Closure is separate from final acceptance and does not fabricate customer sign-off.

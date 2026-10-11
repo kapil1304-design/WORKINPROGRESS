@@ -2,6 +2,12 @@
 
 Last updated: 2026-10-11
 
+## Task dependencies and delay reporting — 2026-10-11
+
+R31: Tasks can select multiple existing prerequisite tasks, have a planned start and a calendar-day duration, and run in parallel when independent. Finish-to-start delays propagate through following tasks and into PDI/dispatch/delivery forecasts without changing approved targets. R32: The following task's responsible member can request updates from unfinished prerequisite owners and report the delay to owner, PM and internal team; external recipients receive only permitted assignment information. Confirmed user source: Task 5 depending on Tasks 2 and 4, 2026-10-11. AT49 covers chains, parallel branches, slack, cycle/phase checks and readiness; AT50 covers reminders, role/audience isolation and approved-target preservation.
+
+Change log: 2026-10-11 — Implemented task dependencies, parallel planning and scoped prerequisite reminders.
+
 ## Full local verification evidence — 2026-10-11
 
 User-requested recorded lifecycle walkthrough completed: 39 visible UI checks and 53 automated checks passed. AT48: recorded local project creation through final stages, closure and owner-only reopening; video beginning/end decode verified. Evidence and exact coverage: runtime/full-test-2026-10-11/report.md and TASKS.MD DEV10. This is local pilot evidence, with synthetic physical verification and local OTP; it does not establish real email delivery, production reliability or completion of all original-report features.

@@ -2,6 +2,12 @@
 
 Last updated: 2026-10-11
 
+## Task dependencies and delay reporting — 2026-10-11
+
+User clarified that Task 5 can depend on Tasks 2 and 4, parallel work is necessary, and the responsible following-task member must be able to remind prerequisite owners and report delay to owner/PM/team. Implemented existing-task checkbox selection, start/duration planning, chained forecast shifts, parallel/slack handling, cycle/phase guards, completion readiness and in-app reminder/report action. External recipients receive assignment-safe text; internal team receives detailed delay report. Existing approved dates are preserved, and legacy tasks assume one day until their plans are edited. 76 automated checks and nine visible browser checks passed. Local recorded example: runtime/dependency-test-1791727213001/dependency-walkthrough.mp4. No real messages sent. Installation remains outside PDI/delivery dates; editing installation planning does not unconfirm the pre-PDI work list. User should refresh localhost, use Plan / dependencies, then confirm the entered pre-PDI work list.
+
+Change log: 2026-10-11 — Implemented task dependencies, parallel planning and scoped prerequisite reminders.
+
 ## iPhone recording copy — 2026-10-11
 
 User could not play playback.html on iPhone. The HTML is only a companion player and requires its video file; it is not a transferable standalone recording. Converted the existing WebM into runtime/full-test-2026-10-11/complete-walkthrough.mp4 using H.264 baseline/yuv420p and fast-start metadata. Whole-video decode verification passed; actual iPhone playback is not yet observed. Send the MP4 itself to iPhone Files. Companion HTML now references MP4. Conversion used an integrity-verified standalone FFmpeg package kept under ignored runtime/; no application runtime dependency added.
