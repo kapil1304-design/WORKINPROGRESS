@@ -1,8 +1,12 @@
 # WorkInProgress — Architecture
 
-Last updated: 2026-10-10
+Last updated: 2026-10-11
 Status: Node.js/SQLite pilot implemented and CI-tested; shared hosting/production rollout pending.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§5–12 and Added Input.
+
+## Local Windows verification — 2026-10-11
+
+Local Windows runtime verified on Node.js v24.20.0: 24 automated tests and syntax checks passed; SQLite-backed server starts at http://127.0.0.1:3000. Health and login endpoints return HTTP 200. Development configuration .env and runtime database/mailbox are ignored by Git; no credentials or data are published. Real email and shared deployment remain pending.
 
 ## Verified shared application milestone — 2026-10-10
 
@@ -596,3 +600,5 @@ Update after selecting technologies, implementing/changing modules or schemas, c
 | 2026-10-10 | Implemented Node/SQLite shared web application, OTP adapter, scoped workflows, files and reminder jobs; tests written and runtime verification pending. |
 
 | 2026-10-10 | Recorded verified shared application milestone: GitHub Actions syntax check and all 24 tests passed; actual email/browser/local deployment checks remain pending. |
+
+| 2026-10-11 | Verified installed Node.js, local tests/startup and local OTP flow; inspected responsive login layout. |

@@ -1,6 +1,10 @@
 # WorkInProgress project instructions
 
-Last updated: 2026-10-10
+Last updated: 2026-10-11
+
+## Local Windows verification — 2026-10-11
+
+Node.js v24.20.0 is now installed. Shared app startup, all 24 tests and syntax checks passed locally on Windows. Current server session serves http://127.0.0.1:3000 in local-mailbox mode. The current application is server/ plus web/; app/ is a historical browser demo. Real provider email and deployment remain pending.
 
 ## Active development baseline — 2026-10-10
 
@@ -53,3 +57,5 @@ Record decisions with date, rationale, source or decision-maker, approval status
 The user authorized pilot development and delegated routine remaining decisions on 2026-10-10. Maintain documentation alongside implementation; ask questions only when essential. Follow the permission and confidentiality rules in RULES.MD during implementation. Preserve unrelated user work and the original report. Do not commit secrets or personal/commercial data into these documents.
 
 | 2026-10-10 | User authorized pilot development and delegated remaining assumptions; local workflow prototype implemented and seven isolated logic checks passed. |
+
+| 2026-10-11 | Verified installed Node.js, local tests/startup and local OTP flow; inspected responsive login layout. |

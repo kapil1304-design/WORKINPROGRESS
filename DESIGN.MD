@@ -1,8 +1,12 @@
 # WorkInProgress — Product and interface design
 
-Last updated: 2026-10-10
+Last updated: 2026-10-11
 Status: Responsive OTP login and operational web screens implemented; browser visual QA pending.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§2, 7, 9, 13.2, and Added Input.
+
+## Local Windows verification — 2026-10-11
+
+Desktop login page inspected in headless Edge at 1440x1000. Added minimum-width/grid safeguards for the mobile form; verified a 390x844 emulated viewport with document width=scroll width=390 and inspected its screenshot. Evidence is local-only runtime/visual-check/login.png and mobile-emulated.png. This verifies login layout only; authenticated workflows have HTTP/domain tests, not full visual browser acceptance.
 
 ## Verified shared application milestone — 2026-10-10
 
@@ -550,3 +554,5 @@ Update when screen flows, fields, states, information architecture, or approved 
 ## Shared pilot final handoff — 2026-10-10
 
 Final application commit a44a004a3252dd333a59df27f36bf43f50f294f2 verified by successful GitHub Actions run https://github.com/kapil1304-design/WORKINPROGRESS/actions/runs/38073438326; all 24 tests and syntax checks passed. Owner/project-manager notification views now show the responsible member and missed reporting date. Setup: DEVELOPMENT.md. Working tree was clean after code push. Local Node installer still waits for Windows administrator consent; no real provider email, browser visual QA or deployment claimed. Continue the remaining report workflows and production-readiness items from DEVELOPMENT.md without reopening routine discovery questions.
+
+| 2026-10-11 | Verified installed Node.js, local tests/startup and local OTP flow; inspected responsive login layout. |
