@@ -2,6 +2,14 @@
 
 Last updated: 2026-10-11
 
+## Recorded full local walkthrough — 2026-10-11
+
+DEV10 completed: slow visible localhost lifecycle test with continuous browser-viewport recording. All 39 UI steps passed, including OTP roles, project/PO, member edits/departments/vendor item, explicit assignment, configurable department, acknowledgements/dispute, blockers/member status, notifications, scope/date/dispatch approvals, returns and verification, supply quantities, customer privacy/responses, photo/PDF upload/download, PDI planning/confirmation, stages, closure and owner reopening. All 53 automated tests passed; reminder timing, access-denial, expiry, persistence and forecast edge cases were checked using controlled test clocks/fixtures. Syntax check passed. Recording decoded at five seconds and near the end (987.638 seconds total).
+
+Local evidence: [recording](runtime/full-test-2026-10-11/complete-walkthrough.webm), [step report](runtime/full-test-2026-10-11/report.md), [automated log](runtime/full-test-2026-10-11/automated-tests.txt), [playback verification](runtime/full-test-2026-10-11/playback-check.json). Artifacts remain ignored and local. Existing data backed up and retained; a new synthetic QA project was added and closed. Physical verification is simulated. Production email, hosting, long-running availability and unimplemented report features remain pending.
+
+Change log: 2026-10-11 — Completed recorded local walkthrough and checked video playback.
+
 ## Automatic PDI, dispatch and delivery — 2026-10-11
 
 DEV09 completed: implement automatic one-day PDI, adjustable PDI-to-dispatch allowance and dispatch-plus-three-day delivery, preserving targets and excluding installation. Evidence: server/schedule.js; test/schedule.test.js (19 cases), HTTP integration and existing suite: 53 passed, zero failures; scripts/check.js passed. Targeted visible local browser checks passed: new project target preview, installation exclusion, gap adjustment, late correction delaying dispatch and disabled premature PDI confirmation. Existing project data preserved. Remaining production email, hosting and broader report features remain pending.

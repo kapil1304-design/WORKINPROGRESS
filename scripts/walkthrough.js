@@ -3,12 +3,13 @@ import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
+import { startRecording } from './browser-recording.js';
 
 if (process.env.MAIL_MODE !== 'local' || process.env.NODE_ENV === 'production') throw Error('Walkthrough requires the local development mailbox.');
 const origin = process.env.APP_ORIGIN || 'http://127.0.0.1:3000';
 if (!/^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(origin)) throw Error('Walkthrough is limited to a local app.');
-const output = resolve('runtime/walkthrough'); mkdirSync(output, { recursive: true });
 const run = Date.now(), projectName = `WATCH TEST ${run}`, results = [];
+const output = resolve(process.env.WALKTHROUGH_OUTPUT || `runtime/walkthrough/run-${run}`); mkdirSync(output, { recursive: true });
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const roles = ['pm', 'purchase', 'staff', 'vendor', 'service', 'customer'];
 const people = Object.fromEntries(roles.map(role => [role, { email: `watch-${role}-${run}@example.test`, name: `Watch ${role}`, organization: role === 'vendor' ? 'Watch Supplier' : 'Watch Company' }]));
@@ -20,7 +21,7 @@ catch {
   browser = spawn('C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', ['--remote-debugging-port=9340', `--user-data-dir=${join(output, `profile-${run}`)}`, '--no-first-run', '--no-default-browser-check', '--start-maximized', '--new-window', origin], { windowsHide: false, stdio: 'ignore' });
   browser.on('error', e => console.error('Browser launch failed:', e.message));
 }
-let socket, serial = 0, pid;
+let socket, serial = 0, pid, recording, recordingDetails;
 const pending = new Map();
 async function connect() {
   let target;
@@ -62,7 +63,11 @@ async function save() {
 }
 async function state() { return evaluate('fetch("/api/state").then(r=>r.json())'); }
 async function assert(condition, label) { if (!condition) throw Error(label); }
-async function step(label, action) { console.log(`WATCH: ${label}`); await pause(1300); await action(); results.push({ step: label, passed: true }); console.log(`PASS: ${label}`); }
+async function step(label, action) {
+  console.log(`WATCH: ${label}`); const started = new Date().toISOString();
+  await evaluate(`(()=>{let e=document.getElementById('walkthrough-step');if(!e){e=document.createElement('div');e.id='walkthrough-step';e.style='position:fixed;bottom:0;left:0;right:0;z-index:99999;background:#14243c;color:white;padding:8px;font:14px sans-serif;pointer-events:none';document.body.append(e);}e.textContent=${JSON.stringify(`${results.length + 1}. ${label}`)};})()`);
+  await pause(1300); await action(); results.push({ step: label, passed: true, started, finished: new Date().toISOString() }); console.log(`PASS: ${label}`);
+}
 async function login(role) {
   if (await evaluate('!document.getElementById("workspace").hidden')) await click('#logout');
   const address = role === 'owner' ? ownerEmail : people[role].email;
@@ -99,6 +104,7 @@ async function screenshot(name) { const r = await command('Page.captureScreensho
 
 try {
   await connect(); await command('Page.navigate', { url: origin }); await pause(2500);
+  if (process.env.RECORD_WALKTHROUGH === '1') { recording = await startRecording(command, evaluate, join(output, 'complete-walkthrough.webm')); console.log('RECORDING: ' + output); }
   await step('Owner signs in with local email OTP', () => login('owner'));
   await step('Create project with all fields including PO number', async () => {
     await click('#new-project'); await field('name', projectName); await field('customer', 'Watch Customer / Machine order'); await field('poNumber', `WATCH-PO-${run}`); await field('start', '2026-10-11'); await field('dispatchTarget', '2026-12-28'); await save();
@@ -113,10 +119,22 @@ try {
     const s = await state(), uid = s.users.find(u => u.email === people.staff.email).id, m = s.members.find(m => m.project === pid && m.user === uid);
     await evaluate(`document.querySelector('[data-remove="${m.id}"]').previousElementSibling.click()`); await pause(2000); await field('name', 'Watch Assembly Technician'); await save(); people.staff.name = 'Watch Assembly Technician';
   });
+  await step('Add a configurable department', async () => { await click('#department'); await field('name', `QA packing ${run}`); await save(); await assert((await state()).departments.includes(`QA packing ${run}`), 'Department did not persist.'); });
   for (const [title, role, type, qty] of [['Assemble machine', 'staff', 'Internal', '1'], ['Purchase motor', 'vendor', 'Purchase', '2'], ['Install machine', 'service', 'Service', '1']]) await step(`Assign ${title} explicitly to the added ${role} member`, async () => {
     await click('#new-task'); await assert(await evaluate('document.querySelector("#modal-form [name=assignee]").value === ""'), 'Assignee was selected automatically.');
     await taskInput(title, role, type, qty); await evaluate('document.getElementById("dialog").scrollTop=0'); await pause(1700); await screenshot(`assign-${role}`); await save();
     const t = await taskByTitle(title), s = await state(); await assert(t.assignee === s.users.find(u => u.email === people[role].email).id, 'Saved task recipient is incorrect.');
+  });
+  await step('Check PDI, editable dispatch allowance and installation exclusion', async () => {
+    let p=(await state()).projects.find(p=>p.id===pid), m=p.milestones;
+    await assert(m.pdiFinish === '2026-12-16' && m.dispatch === '2026-12-23' && m.delivery === '2026-12-26', 'Default milestone chain incorrect.');
+    await assert(m.excludedTasks===1 && await evaluate('document.getElementById("complete-pdi").disabled'), 'Installation exclusion or inspection guard failed.');
+    await click('#milestone-settings'); await field('pdiDispatchDays','2'); await check('planningComplete'); await save();
+    p=(await state()).projects.find(p=>p.id===pid); await assert(p.milestones.dispatch==='2026-12-18' && p.dispatchTarget==='2026-12-28', 'Gap adjustment changed approved target.');
+    const t=await taskByTitle('Install machine'); await click(`[data-phase="${t.id}"]`); await field('phase','postPdi'); await field('reason','Test phase correction before returning installation to post-delivery.'); await save();
+    await assert((await taskByTitle('Install machine')).phase==='postPdi','Phase edit failed.');
+    await click(`[data-phase="${t.id}"]`); await field('phase','postDelivery'); await field('reason','Installation follows delivery.'); await save();
+    await click('#milestone-settings'); await field('pdiDispatchDays','7'); if(!await evaluate('document.querySelector("[name=planningComplete]").checked')) await check('planningComplete'); await save();
   });
   await step('Request status from the assigned technician', async () => { await click('#request-status'); const s = await state(); await field('target', s.users.find(u => u.email === people.staff.email).id); await field('reason', 'Please report assembly progress.'); await save(); });
   await step('Write a customer-shared multilingual comment', async () => { await click('#comment'); await field('audience', 'customer'); await field('text', 'Test project progress shared. काम जारी है।'); await save(); });
@@ -124,10 +142,24 @@ try {
   await step('Purchase manager approves another person’s date request', async () => { await login('purchase'); await click('[data-view="approvals"]'); const r = (await state()).changes.find(r => r.project === pid && r.type === 'date' && r.status === 'Pending'); await click(`[data-decide="${r.id}"]`); await field('decision', 'Approved'); await field('reason', 'Test recovery plan accepted.'); await save(); });
   await step('Owner requests additional scope', async () => { await login('owner'); await openProject(); await click('#scope'); await field('reason', 'Add final machine test to the synthetic project.'); await save(); });
   await step('Project manager approves scope and allocates it to a selected member', async () => { await login('pm'); await click('[data-view="approvals"]'); const r = (await state()).changes.find(r => r.project === pid && r.type === 'scope' && r.status === 'Pending'); await click(`[data-decide="${r.id}"]`); await field('decision', 'Approved'); await field('reason', 'Allocate accepted test work.'); await taskInput('Final machine test', 'staff'); await save(); });
-  await step('Project manager initiates a customer delivery revision', async () => { await openProject(); await click('#delivery'); await field('proposedDate', '2026-12-30'); await field('reason', 'Additional test scope affects the forecast delivery.'); await save(); });
-  await step('Owner approves delivery revision and customer is notified', async () => { await login('owner'); await click('[data-view="approvals"]'); const r = (await state()).changes.find(r => r.project === pid && ['delivery', 'dispatch'].includes(r.type) && r.status === 'Pending'); await click(`[data-decide="${r.id}"]`); await field('decision', 'Approved'); await field('reason', 'Approved revised test delivery.'); await save(); });
+  await step('Project manager initiates a dispatch target revision', async () => { await openProject(); await click('#delivery'); await field('proposedDate', '2026-12-30'); await field('reason', 'Additional test scope affects the dispatch target.'); await save(); });
+  await step('Owner approves dispatch revision and customer is notified', async () => { await login('owner'); await click('[data-view="approvals"]'); const r = (await state()).changes.find(r => r.project === pid && ['delivery', 'dispatch'].includes(r.type) && r.status === 'Pending'); await click(`[data-decide="${r.id}"]`); await field('decision', 'Approved'); await field('reason', 'Approved revised test dispatch.'); await save(); });
+  await step('Technician disputes then accepts work and records a blocker', async () => {
+    await login('staff'); await click('[data-view="work"]'); let t=await taskByTitle('Assemble machine');
+    await click(`[data-ack="${t.id}"]`); await field('decision','Disputed'); await field('reason','Test clarification required.'); await save();
+    await openProject(); await click(`[data-ack="${t.id}"]`); await field('decision','Accepted'); await field('reason','Clarification received.'); await save();
+    await click(`[data-update="${t.id}"]`); await field('status','Blocked'); await field('completed','Assembly prepared.'); await field('pending','Clarification'); await field('nextAction','Manager resolves question'); await field('forecast','2026-12-18'); await field('reason','Synthetic blocker.');
+    const s=await state(); await field('resolver',s.users.find(u=>u.email===people.pm.email).id); await save();
+    await assert((await taskByTitle('Assemble machine')).status==='Blocked','Blocked status not retained.');
+    await click('#member-update'); await field('status','In progress'); await field('completed','Reported member availability.'); await field('pending','Assembly verification'); await field('nextAction','Complete assembly'); await field('forecast',''); await field('reason',''); await field('resolver',''); await save();
+    await click('[data-view="notifications"]'); const n=(await state()).notifications.find(n=>n.project===pid&&!n.read); if(n) { await click(`[data-read="${n.id}"]`); await assert((await state()).notifications.find(x=>x.id===n.id).read,'Notification not marked read.'); }
+  });
   await step('Technician acknowledges and submits assembly completion', async () => { await login('staff'); await updateTask('Assemble machine'); });
   await step('Technician submits the additional final-test work', () => updateTask('Final machine test'));
+  await step('Project manager returns submitted assembly for correction', async () => {
+    await login('pm'); await openProject(); const t=await taskByTitle('Assemble machine'); await click(`[data-verify="${t.id}"]`); await field('action','return'); await field('reason','Synthetic correction needed before acceptance.'); await save();
+    await assert((await taskByTitle('Assemble machine')).status!=='Completed','Returned work was completed.'); await login('staff'); await updateTask('Assemble machine');
+  });
   await step('Project manager verifies assembly and additional test work', async () => { await login('pm'); await verifyTask('Assemble machine'); await verifyTask('Final machine test'); });
   await step('Vendor sees only its assigned work and records dispatch', async () => { await login('vendor'); const s = await state(); await assert(s.tasks.filter(t => t.project === pid).every(t => t.assignee === s.me.id), 'Vendor sees unrelated tasks.'); await supply('dispatch'); });
   await step('Vendor submits purchase completion for verification', () => updateTask('Purchase motor'));
@@ -148,6 +180,13 @@ try {
     const xref = Buffer.byteLength(pdf); pdf += 'xref\n0 6\n0000000000 65535 f \n' + offsets.slice(1).map(n => String(n).padStart(10, '0') + ' 00000 n \n').join('') + `trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`; writeFileSync(file, pdf);
     await click('#upload'); await field('audience', 'customer'); const doc = await command('DOM.getDocument'); const input = await command('DOM.querySelector', { nodeId: doc.root.nodeId, selector: '#modal-form input[type=file]' }); await command('DOM.setFileInputFiles', { nodeId: input.nodeId, files: [file] }); await pause(2500); await save();
   });
+  await step('Customer downloads the shared PDF and uploads a photo', async () => {
+    const s=await state(), a=s.attachments.find(a=>a.project===pid&&a.name.endsWith('.pdf'));
+    await assert(await evaluate(`fetch('/api/files/${a.id}').then(async r=>r.ok && (await r.text()).startsWith('%PDF'))`),'Shared PDF download failed.');
+    const file=join(output,'synthetic-photo.png'), shot=await command('Page.captureScreenshot',{format:'png'}); writeFileSync(file,Buffer.from(shot.data,'base64'));
+    await click('#upload'); await field('audience','customer'); const doc=await command('DOM.getDocument'); const node=await command('DOM.querySelector',{nodeId:doc.root.nodeId,selector:'#modal-form input[type=file]'}); await command('DOM.setFileInputFiles',{nodeId:node.nodeId,files:[file]}); await pause(2000); await save();
+    await assert((await state()).attachments.some(a=>a.project===pid&&a.name==='synthetic-photo.png'),'Photo did not persist.');
+  });
   await step('Owner advances stages through final acceptance', async () => {
     await login('owner'); await openProject(); await click('#milestone-settings'); await field('pdiDispatchDays', '7');
     if (!await evaluate('document.querySelector("[name=planningComplete]").checked')) await check('planningComplete');
@@ -167,7 +206,9 @@ try {
   if (socket) try { await screenshot('failure'); } catch {}
   process.exitCode = 1;
 } finally {
-  writeFileSync(join(output, `${run}-results.json`), JSON.stringify({ projectName, projectId: pid, checks: results }, null, 2));
+  if(recording) try { recordingDetails = await recording.stop(); console.log('RECORDING SAVED: ' + recordingDetails.path); } catch(e) { results.push({ passed:false, error:'Recording: '+e.message }); process.exitCode=1; }
+  writeFileSync(join(output, 'results.json'), JSON.stringify({ projectName, projectId: pid, recording: recordingDetails, checks: results }, null, 2));
+  writeFileSync(join(output, 'report.md'), `# Localhost visible walkthrough\n\nProject: ${projectName}\n\nRecording: complete-walkthrough.webm (browser viewport, no audio).\n\n${results.map((r,i)=>`${i+1}. ${r.passed ? 'PASS' : 'FAIL'}: ${r.step || r.error}`).join('\n')}\n\nOnly synthetic QA data was added. Physical inspection is simulated; no real email or production deployment tested.\n`);
   socket?.close();
   // Deliberately leave the visible browser open for the user to inspect.
   browser?.unref();

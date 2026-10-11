@@ -2,6 +2,12 @@
 
 Last updated: 2026-10-11
 
+## Recorded local test handoff — 2026-10-11
+
+User requested step-by-step localhost testing and a complete saved recording. Completed 39 visible UI steps and all 53 automated checks without failures. Video saved to runtime/full-test-2026-10-11/complete-walkthrough.webm (16 minutes 28 seconds, browser viewport, no audio); first/end playback decoded successfully. Same folder contains report.md, results.json, automated-tests.txt, playback.html and screenshots. Runtime evidence is intentionally not published to GitHub. scripts/walkthrough.js now supports RECORD_WALKTHROUGH=1 and WALKTHROUGH_OUTPUT; scripts/browser-recording.js captures the actual Chromium viewport. Added one synthetic project and configurable QA department; project finished closed with four verified tasks and actual simulated PDI. All prior projects preserved and a pre-test backup saved. Tests use local OTP mailbox, simulated inspection and controlled reminder clocks; no real email/production operation demonstrated. Next: user reviews recording and pilot behavior; production-readiness work remains listed in DEVELOPMENT.md.
+
+Change log: 2026-10-11 — Saved and playback-verified the requested full local test recording.
+
 ## Automatic PDI, dispatch and delivery — 2026-10-11
 
 User confirmed PDI takes one day and requested implementation on 2026-10-11. Implemented chain: required work -> next-day one-day PDI -> editable default seven days -> dispatch -> three days -> delivery. Installation/handover is post-delivery. Forecasts never silently replace approved targets; actual PDI requires verified work and confirmed work list. 53 automated tests and targeted local browser checks passed. Existing data retained; synthetic milestone QA project remains available. Refresh the local app and choose Scheduling phase on tasks; owner/PM can adjust allowance and confirm the work list. Production email and deployment remain unverified.

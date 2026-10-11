@@ -26,6 +26,8 @@ Shared deployment requires `NODE_ENV=production`, an HTTPS `APP_ORIGIN`, a rever
 
 ## Commands
 
+For a slow visible local walkthrough with a saved WebM recording (Windows/Edge; local mailbox only), set `RECORD_WALKTHROUGH=1` and optionally `WALKTHROUGH_OUTPUT`, then run `node --env-file-if-exists=.env scripts/walkthrough.js`. The script adds synthetic QA data, leaves its completed project closed, and saves video, step results and screenshots under ignored runtime/. The 2026-10-11 run passed 39 visible steps and 53 automated checks; evidence is in runtime/full-test-2026-10-11/. Video records the actual browser viewport without audio. Recording artifacts and test account data stay local.
+
 ```text
 npm run check
 npm test

@@ -2,6 +2,12 @@
 
 Last updated: 2026-10-11
 
+## Full local verification evidence — 2026-10-11
+
+User-requested recorded lifecycle walkthrough completed: 39 visible UI checks and 53 automated checks passed. AT48: recorded local project creation through final stages, closure and owner-only reopening; video beginning/end decode verified. Evidence and exact coverage: runtime/full-test-2026-10-11/report.md and TASKS.MD DEV10. This is local pilot evidence, with synthetic physical verification and local OTP; it does not establish real email delivery, production reliability or completion of all original-report features.
+
+Change log: 2026-10-11 — Added recorded full local verification evidence.
+
 ## Automatic PDI, dispatch and delivery — 2026-10-11
 
 R30: Forecast the one-day PDI after all required pre-PDI work, dispatch after an editable seven-calendar-day allowance, and delivery three calendar days after dispatch. Installation/handover is separate. Confirmed by user on 2026-10-11; implementation and verification completed. Approved targets remain distinct from forecasts. AT45: forecast arithmetic, phase exclusions and late corrections. AT46: verified-work readiness, actual inspection and invalidation. AT47: permissions, target approval and closure freeze. Evidence: test/schedule.test.js, HTTP tests and local browser checks; 53 automated tests passed.
