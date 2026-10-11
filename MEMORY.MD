@@ -3,6 +3,10 @@
 Last updated: 2026-10-11
 Status: Shared Node/SQLite pilot implemented; 24 automated tests passed; actual email and deployment pending.
 
+## Explicit task recipient selection — 2026-10-11
+
+User reported unclear task assignee selection and requested choosing from added members; authorized another fresh start on 2026-10-11. Implemented required, initially blank dropdown with name/role/department-or-item/email labels and project-membership validation. Cleared only the single test project and related records, retaining owner login and ignored backup. All 34 tests passed. App session 53859; refresh and rebuild project/members.
+
 ## Vendor member item name — 2026-10-11
 
 On 2026-10-11 user requested Item name while adding Vendor members. Implemented optional project-specific itemName, editable later and displayed on vendor member cards. Current test project/members were preserved (no reset authorized in this turn). All 32 tests passed; app restarted in session 20993. Refresh, choose Vendor, and enter Item name.
@@ -632,3 +636,5 @@ Final application commit a44a004a3252dd333a59df27f36bf43f50f294f2 verified by su
 | 2026-10-11 | Added project PO number and cleared the explicitly authorized single test project; 30 tests passed and app restarted. |
 
 | 2026-10-11 | Added project-specific vendor member item name with editing; 32 local tests passed and live app restarted. |
+
+| 2026-10-11 | Required explicit assignment to added project members; 34 local tests passed and authorized test project reset completed. |

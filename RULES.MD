@@ -4,6 +4,10 @@ Last updated: 2026-10-11
 Status: Initial documented rules; application rules are requirements/proposals awaiting implementation.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§5–12, 15, and Added Input; user's instruction to maintain six project documents.
 
+## Explicit task recipient selection — 2026-10-11
+
+Assignment must target an explicitly selected execution member added to the project; global owner access alone does not make the owner an added task recipient. Customers are excluded. Owner/manager/purchase manager retain assignment authority. This turn includes a user-authorized one-project reset, not a general deletion policy.
+
 ## Vendor member item name — 2026-10-11
 
 Item names are descriptive vendor membership metadata, not task allocations or completion approvals. Owner may add/edit them under existing membership permissions. Non-vendor roles store no vendor item name. Existing project-scoped vendor/customer isolation remains.
@@ -553,3 +557,5 @@ Update when an invariant, permission policy, operating convention, or stack-spec
 | 2026-10-11 | Added project PO number and cleared the explicitly authorized single test project; 30 tests passed and app restarted. |
 
 | 2026-10-11 | Added project-specific vendor member item name with editing; 32 local tests passed and live app restarted. |
+
+| 2026-10-11 | Required explicit assignment to added project members; 34 local tests passed and authorized test project reset completed. |

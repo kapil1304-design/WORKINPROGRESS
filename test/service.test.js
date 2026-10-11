@@ -212,3 +212,10 @@ run('Vendor item validation rejects invalid values and ignores non-vendor fields
   const m = svc.membership(people.vendor, p.id);
   assert.equal(svc.editMember(owner, p.id, m.id, { name: 'Vendor', email: people.vendor.email, organization: 'Vendor', role: 'vendor', version: 1, userVersion: 1 }).itemName, null);
 });
+run('Task assignment requires an explicitly added execution member', ({ svc, owner, people, p }) => {
+  const input = { title: 'Work', department: 'Assembly', type: 'Internal', due: '2026-11-01' };
+  assert.throws(() => svc.createTask(owner, p.id, input), /Select a member/);
+  assert.throws(() => svc.createTask(owner, p.id, { ...input, assignee: owner.id }), /added to this project/);
+  assert.throws(() => svc.createTask(owner, p.id, { ...input, assignee: people.customer.id }), /execution member/);
+  assert.equal(svc.createTask(owner, p.id, { ...input, assignee: people.staff.id }).assignee, people.staff.id);
+});

@@ -4,6 +4,10 @@ Last updated: 2026-10-11
 Status: Responsive OTP login and operational web screens implemented; browser visual QA pending.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§2, 7, 9, 13.2, and Added Input.
 
+## Explicit task recipient selection — 2026-10-11
+
+Assign task to member is the first task-form field, with a required empty selection prompt. Each option shows name, role, department(s) or vendor item, and email. If no execution members exist, the prompt instructs adding a member first. Same selector is reused for accepted scope allocation. User should refresh, create project, add members, then assign work.
+
 ## Vendor member item name — 2026-10-11
 
 Choosing Vendor in Add/Edit member shows Item name; other roles hide/disable it. Editing pre-fills the saved value. Internal member lists display Item: value for vendor members; internal departments remain displayed for staff. User should refresh the browser.
@@ -574,3 +578,5 @@ Final application commit a44a004a3252dd333a59df27f36bf43f50f294f2 verified by su
 | 2026-10-11 | Added project PO number and cleared the explicitly authorized single test project; 30 tests passed and app restarted. |
 
 | 2026-10-11 | Added project-specific vendor member item name with editing; 32 local tests passed and live app restarted. |
+
+| 2026-10-11 | Required explicit assignment to added project members; 34 local tests passed and authorized test project reset completed. |

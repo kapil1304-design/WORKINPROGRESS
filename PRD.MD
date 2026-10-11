@@ -4,6 +4,10 @@ Last updated: 2026-10-11
 Status: Confirmed requirements with tested shared pilot core; remaining report features and production readiness pending.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), version 1.0, 8 October 2026, sections 1–18 and Added Input.
 
+## Explicit task recipient selection — 2026-10-11
+
+R29: Task assignment requires explicit selection from execution members added to the current project. Dropdown identifies members by name, role, departments/vendor item and email. Customers and users not added to this project are excluded. AT43: no automatic default; assignment rejects omitted/nonmember/customer recipients. All 34 local tests passed. User explicitly authorized clearing the current test project for a fresh test.
+
 ## Vendor member item name — 2026-10-11
 
 R28: Vendor project membership includes an item name in Add/Edit member. Pilot default is optional text up to 200 characters. AT42: item names persist per project, can be corrected, and invalid type/length is rejected. All 32 local tests passed.
@@ -688,3 +692,5 @@ Update when requirements, scope, priorities, acceptance criteria, or agreed targ
 | 2026-10-11 | Added project PO number and cleared the explicitly authorized single test project; 30 tests passed and app restarted. |
 
 | 2026-10-11 | Added project-specific vendor member item name with editing; 32 local tests passed and live app restarted. |
+
+| 2026-10-11 | Required explicit assignment to added project members; 34 local tests passed and authorized test project reset completed. |

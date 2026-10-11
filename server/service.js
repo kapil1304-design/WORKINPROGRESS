@@ -169,8 +169,9 @@ export class Service {
   }
   createTask(actor, pid, input) {
     this.access(actor, pid, true); this.allow(actor, pid, ['owner', 'pm', 'purchase']);
+    if (!input.assignee) fail('Select a member added to this project to assign the task.');
     const assignee = this.user(input.assignee);
-    if ((!assignee.owner && !this.membership(assignee, pid)) || this.role(assignee, pid) === 'customer') fail('Assignee must be an execution member of this project.');
+    if (!this.membership(assignee, pid) || this.role(assignee, pid) === 'customer') fail('Assignee must be an execution member added to this project.');
     const department = pick(input.department, this.snapshot(actor).departments, 'department');
     const dependencies = Array.isArray(input.dependencies) ? input.dependencies : [];
     for (const id of dependencies) { const t = this.task(actor, id); if (t.project !== pid) fail('Dependency must belong to this project.'); }

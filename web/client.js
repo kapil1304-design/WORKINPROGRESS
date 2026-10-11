@@ -1,3 +1,4 @@
+import { assignmentOptions } from './assignment.js';
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 let state, view = 'projects', selected = null;
@@ -30,7 +31,11 @@ function audienceList(p) {
   if (!internal(p)) return [{ id: `member:${state.me.id}`, name: 'Your assignment conversation' }];
   return [{ id: 'internal', name: 'Internal team' }, { id: 'customer', name: 'Customer-shared' }, ...state.members.filter(m => m.project === p.id && ['vendor', 'service'].includes(m.role)).map(m => ({ id: `member:${m.user}`, name: `Private: ${name(m.user)}` }))];
 }
-function taskFields(p) { return field('Title', 'title') + field('Customer-safe label (optional)', 'customerTitle', 'text', '', false) + select('Department', 'department', state.departments) + select('Assignee', 'assignee', members(p)) + select('Work type', 'type', ['Internal', 'Purchase', 'Service']) + field('Target date', 'due', 'date') + area('Scope', 'scope') + area('Acceptance criteria', 'criteria') + field('Purchase required quantity', 'requiredQuantity', 'number', '1'); }
+function taskFields(p) {
+  const eligible = assignmentOptions(state, p.id);
+  const assignment = `<label>Assign task to member<select name="assignee" required><option value="" disabled selected>${eligible.length ? 'Select a member added to this project' : 'No members available — add a member first'}</option>${options(eligible)}</select></label><p class="muted">Choose who is responsible for this task. Only execution members added to this project are listed.</p>`;
+  return assignment + field('Title', 'title') + field('Customer-safe label (optional)', 'customerTitle', 'text', '', false) + select('Department', 'department', state.departments) + select('Work type', 'type', ['Internal', 'Purchase', 'Service']) + field('Target date', 'due', 'date') + area('Scope', 'scope') + area('Acceptance criteria', 'criteria') + field('Purchase required quantity', 'requiredQuantity', 'number', '1');
+}
 function render() {
   $('account-name').textContent = state.me.name; $('account-role').textContent = state.me.owner ? 'Business owner' : 'Project member';
   $('clock').textContent = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'short', hour: '2-digit', minute: '2-digit' }) + ' IST';

@@ -4,6 +4,10 @@ Last updated: 2026-10-11
 Status: Node.js/SQLite pilot implemented and CI-tested; shared hosting/production rollout pending.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§5–12 and Added Input.
 
+## Explicit task recipient selection — 2026-10-11
+
+web/assignment.js builds options from current project memberships and matching user profiles; served as an explicit static module. createTask validates a supplied recipient and requires actual project membership, including for the global owner. This removes prior automatic owner inclusion. Existing project scope/role authorization remains.
+
 ## Vendor member item name — 2026-10-11
 
 Vendor itemName is stored on the project membership rather than global user profile. Legacy missing/null values remain valid. It is saved on creation/edit and included in edit audit before/after values. Existing project/member data remains; no destructive migration.
@@ -620,3 +624,5 @@ Update after selecting technologies, implementing/changing modules or schemas, c
 | 2026-10-11 | Added project PO number and cleared the explicitly authorized single test project; 30 tests passed and app restarted. |
 
 | 2026-10-11 | Added project-specific vendor member item name with editing; 32 local tests passed and live app restarted. |
+
+| 2026-10-11 | Required explicit assignment to added project members; 34 local tests passed and authorized test project reset completed. |

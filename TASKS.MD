@@ -4,6 +4,10 @@ Last updated: 2026-10-11
 Status: Shared pilot core implemented; 24 automated tests passed; development continues on remaining features and operational readiness.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§8, 13–14 and Added Input.
 
+## Explicit task recipient selection — 2026-10-11
+
+DEV07 Done: explicit project-member assignment implemented, syntax and all 34 tests passed including dropdown candidate/label checks and server recipient validation. Authorized test project reset completed with backup (zero projects, one owner retained). App restarted in session 53859; health and assignment module HTTP 200.
+
 ## Vendor member item name — 2026-10-11
 
 DEV06 Done: vendor item name added to creation/edit/storage/display. Syntax checks and all 32 local tests passed, covering per-project separation, edits, validation and legacy null handling. Database backup made and app restarted in session 20993 with existing data retained.
@@ -623,3 +627,5 @@ Final application commit a44a004a3252dd333a59df27f36bf43f50f294f2 verified by su
 | 2026-10-11 | Added project PO number and cleared the explicitly authorized single test project; 30 tests passed and app restarted. |
 
 | 2026-10-11 | Added project-specific vendor member item name with editing; 32 local tests passed and live app restarted. |
+
+| 2026-10-11 | Required explicit assignment to added project members; 34 local tests passed and authorized test project reset completed. |

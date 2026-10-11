@@ -79,7 +79,7 @@ export function createApp(config = {}) {
         }
         throw new AppError('Endpoint not found.', 404);
       }
-      const assets = { '/': ['index.html', 'text/html'], '/client.js': ['client.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
+      const assets = { '/': ['index.html', 'text/html'], '/client.js': ['client.js', 'text/javascript'], '/assignment.js': ['assignment.js', 'text/javascript'], '/style.css': ['style.css', 'text/css'] };
       if (method === 'GET' && assets[path]) { const [file, type] = assets[path]; res.writeHead(200, { ...security, 'Content-Type': `${type}; charset=utf-8` }); return res.end(readFileSync(join(root, 'web', file))); }
       throw new AppError('Not found.', 404);
     } catch (error) { if (!error.status) console.error('Request failed:', error.name); send(error.status || 500, { error: error.status ? error.message : 'The request could not be completed.' }); }
