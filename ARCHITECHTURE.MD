@@ -4,6 +4,10 @@ Last updated: 2026-10-11
 Status: Node.js/SQLite pilot implemented and CI-tested; shared hosting/production rollout pending.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§5–12 and Added Input.
 
+## Project PO number and authorized test reset — 2026-10-11
+
+Project records now store nullable poNumber. No destructive schema migration is needed. Customer and internal views include the PO reference; vendor/service projections omit this customer PO field. Local reset was scoped to the single authorized project and related records, preserving the owner/configuration; ignored backup taken before reset.
+
 ## Member departments and editing — 2026-10-11
 
 Membership records now hold departments[] and version, defaulting legacy missing values to [] and 1 without destructive migration. User profile version supports concurrent edits across projects. POST /api/projects/:project/members/:membership updates member details transactionally; profile fields are global, role/departments project-specific. Email corrections revoke old OTP/session records. Existing task assignee IDs remain unchanged.
@@ -608,3 +612,5 @@ Update after selecting technologies, implementing/changing modules or schemas, c
 | 2026-10-11 | Verified installed Node.js, local tests/startup and local OTP flow; inspected responsive login layout. |
 
 | 2026-10-11 | Added project-specific member departments and audited owner correction editing; all 29 local tests passed and live local app restarted with existing data preserved. |
+
+| 2026-10-11 | Added project PO number and cleared the explicitly authorized single test project; 30 tests passed and app restarted. |

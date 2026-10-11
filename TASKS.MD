@@ -4,6 +4,10 @@ Last updated: 2026-10-11
 Status: Shared pilot core implemented; 24 automated tests passed; development continues on remaining features and operational readiness.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§8, 13–14 and Added Input.
 
+## Project PO number and authorized test reset — 2026-10-11
+
+DEV05 Done: project PO field/storage/display implemented, syntax and all 30 local tests passed. Authorized single test project and associated records cleared (verified zero projects, one owner retained); backup saved in ignored runtime/backups. App restarted in session 86331; health and served PO form verified.
+
 ## Member departments and editing — 2026-10-11
 
 DEV04 Done: member departments and correction form implemented, syntax checks and all 29 tests passed locally, including HTTP add/edit persistence, multiple project departments, legacy compatibility, negative permission/version/email/department checks and login invalidation. Database backup taken before restarting the live local app; existing data retained. App restarted in session 6678 and health/new form served successfully. User should refresh the page.
@@ -611,3 +615,5 @@ Final application commit a44a004a3252dd333a59df27f36bf43f50f294f2 verified by su
 | 2026-10-11 | Verified installed Node.js, local tests/startup and local OTP flow; inspected responsive login layout. |
 
 | 2026-10-11 | Added project-specific member departments and audited owner correction editing; all 29 local tests passed and live local app restarted with existing data preserved. |
+
+| 2026-10-11 | Added project PO number and cleared the explicitly authorized single test project; 30 tests passed and app restarted. |

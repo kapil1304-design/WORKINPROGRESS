@@ -4,6 +4,10 @@ Last updated: 2026-10-11
 Status: Confirmed requirements with tested shared pilot core; remaining report features and production readiness pending.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), version 1.0, 8 October 2026, sections 1–18 and Added Input.
 
+## Project PO number and authorized test reset — 2026-10-11
+
+R27: New projects include a PO number field. Implementation default: optional for the pilot, maximum 100 characters. AT41: provided PO numbers persist and are displayed; omitted values remain valid and invalid type/length is rejected. User also explicitly authorized clearing the single existing test project to restart testing. All 30 local tests passed.
+
 ## Member departments and editing — 2026-10-11
 
 R26: Internal project members can be assigned one or more departments during creation and corrected later. Business owner can edit saved member name, email, organization, project role and departments. AT39: add/edit persists project-specific department lists without changing task ownership. AT40: unauthorized/stale edits and duplicate emails are rejected; changed email invalidates old authentication. Verified by HTTP and service tests; UI served-state check passed.
@@ -676,3 +680,5 @@ Update when requirements, scope, priorities, acceptance criteria, or agreed targ
 | 2026-10-10 | Recorded verified shared application milestone: GitHub Actions syntax check and all 24 tests passed; actual email/browser/local deployment checks remain pending. |
 
 | 2026-10-11 | Added project-specific member departments and audited owner correction editing; all 29 local tests passed and live local app restarted with existing data preserved. |
+
+| 2026-10-11 | Added project PO number and cleared the explicitly authorized single test project; 30 tests passed and app restarted. |

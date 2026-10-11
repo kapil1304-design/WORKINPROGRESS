@@ -188,3 +188,11 @@ run('Correcting email revokes old sessions and OTPs', ({ svc, owner, people, p, 
   svc.editMember(owner, p.id, m.id, { name: 'Staff', email: 'new@example.test', organization: 'Company', role: 'staff', departments: [], version: 1, userVersion: 1 });
   assert.equal(store.get('sessions', 'old-session'), null); assert.equal(store.get('otps', people.staff.email), null);
 });
+run('Project PO numbers persist, are optional, and reject invalid values', ({ svc, owner, store }) => {
+  const input = { name: 'PO project', customer: 'Customer', delivery: '2026-12-01' };
+  const p = svc.createProject(owner, { ...input, poNumber: ' PO/2026-001 ' });
+  assert.equal(store.get('projects', p.id).poNumber, 'PO/2026-001');
+  assert.equal(svc.createProject(owner, input).poNumber, null);
+  assert.throws(() => svc.createProject(owner, { ...input, poNumber: 123 }), /PO number/);
+  assert.throws(() => svc.createProject(owner, { ...input, poNumber: 'x'.repeat(101) }), /PO number/);
+});
