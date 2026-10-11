@@ -6,3 +6,5 @@
 #member-departments{border:1px solid var(--line);border-radius:7px;padding:12px;display:grid;gap:8px}#member-departments legend{font-size:13px;color:#4b6876}
 
 .assignee-field{padding:14px;background:#e1f3eb;border:1px solid #75bba6;border-radius:8px;font-weight:600}.assignee-summary{margin:0;color:var(--green);font-size:13px}
+
+.milestone-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.milestone-grid strong{display:block;margin-top:10px;font-size:17px}.schedule-warning{color:#946715;font-size:13px}@media(max-width:800px){.milestone-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}

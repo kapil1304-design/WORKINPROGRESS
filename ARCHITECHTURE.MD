@@ -1,6 +1,12 @@
 # WorkInProgress — Architecture
 
 Last updated: 2026-10-11
+
+## Automatic PDI, dispatch and delivery — 2026-10-11
+
+server/schedule.js derives milestones from task phases (prePdi, postPdi, postDelivery), approved dates, latest member forecasts and verified completion dates. Project records hold dispatch targets/original targets, editable allowance, work-list confirmation and an actual PDI signature. Legacy delivery targets derive dispatch minus three days. POST project milestones/pdi and task schedule routes enforce roles and versions. Closed projects persist a milestone snapshot; reopening recomputes. Customers receive safe milestone projections; vendor/service accounts receive no project schedule.
+
+Change log: 2026-10-11 — Implemented and verified the user-approved milestone flow.
 Status: Node.js/SQLite pilot implemented and CI-tested; shared hosting/production rollout pending.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§5–12 and Added Input.
 

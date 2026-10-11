@@ -1,6 +1,12 @@
 # WorkInProgress — Tasks and development backlog
 
 Last updated: 2026-10-11
+
+## Automatic PDI, dispatch and delivery — 2026-10-11
+
+DEV09 completed: implement automatic one-day PDI, adjustable PDI-to-dispatch allowance and dispatch-plus-three-day delivery, preserving targets and excluding installation. Evidence: server/schedule.js; test/schedule.test.js (19 cases), HTTP integration and existing suite: 53 passed, zero failures; scripts/check.js passed. Targeted visible local browser checks passed: new project target preview, installation exclusion, gap adjustment, late correction delaying dispatch and disabled premature PDI confirmation. Existing project data preserved. Remaining production email, hosting and broader report features remain pending.
+
+Change log: 2026-10-11 — Implemented and verified the user-approved milestone flow.
 Status: Shared pilot core implemented; 24 automated tests passed; development continues on remaining features and operational readiness.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§8, 13–14 and Added Input.
 

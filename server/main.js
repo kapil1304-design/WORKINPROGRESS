@@ -66,9 +66,11 @@ export function createApp(config = {}) {
               if (action === 'changes') return service.change(actor, pid, input);
               if (action === 'comments') return service.comment(actor, pid, input);
               if (action === 'status-requests') return service.requestStatus(actor, pid, input);
+              if (action === 'milestones') return service.milestoneSettings(actor, pid, input);
+              if (action === 'pdi') return service.completePdi(actor, pid, input);
             }
-            const task = /^\/api\/tasks\/([^/]+)\/(verify|acknowledge|supply)$/.exec(path);
-            if (task) return task[2] === 'verify' ? service.verify(actor, task[1], input) : task[2] === 'supply' ? service.supply(actor, task[1], input) : service.acknowledge(actor, task[1], input);
+            const task = /^\/api\/tasks\/([^/]+)\/(verify|acknowledge|supply|schedule)$/.exec(path);
+            if (task) return task[2] === 'verify' ? service.verify(actor, task[1], input) : task[2] === 'supply' ? service.supply(actor, task[1], input) : task[2] === 'schedule' ? service.taskSchedule(actor, task[1], input) : service.acknowledge(actor, task[1], input);
             const change = /^\/api\/changes\/([^/]+)\/(decide|respond)$/.exec(path);
             if (change) return change[2] === 'decide' ? service.decide(actor, change[1], input) : service.accept(actor, change[1], input);
             const notification = /^\/api\/notifications\/([^/]+)\/read$/.exec(path);

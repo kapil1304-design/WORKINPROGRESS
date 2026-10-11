@@ -32,6 +32,8 @@ test('HTTP login, authenticated mutation, CSRF rejection, private runtime and lo
     const afterEdit = await (await fetch(origin + '/api/state', { headers: { Cookie: cookie } })).json();
     assert.deepEqual(afterEdit.members.find(m => m.id === member.id).departments, ['Design']);
     assert.equal(afterEdit.users.find(u => u.id === member.user).email, 'corrected@example.test');
+    const milestone = await post(`/api/projects/${p.id}/milestones`, { version: afterEdit.projects[0].version, pdiDispatchDays: 3, planningComplete: true }, cookie);
+    assert.equal(milestone.status, 200); assert.equal((await milestone.json()).pdiDispatchDays, 3);
     await post('/api/auth/logout', {}, cookie); assert.equal((await fetch(origin + '/api/state', { headers: { Cookie: cookie } })).status, 401);
   } finally { await new Promise(resolve => app.server.close(resolve)); rmSync(dir, { recursive: true, force: true }); }
 });

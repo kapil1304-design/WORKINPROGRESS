@@ -1,6 +1,12 @@
 # WorkInProgress — Project and application rules
 
 Last updated: 2026-10-11
+
+## Automatic PDI, dispatch and delivery — 2026-10-11
+
+All dates use calendar-day arithmetic; actual completion dates use Asia/Kolkata. Forecast PDI occupies the next calendar day after the latest required work date (implementation convention). Default dispatch allowance is seven days from PDI completion; delivery is dispatch plus three days. Later post-PDI corrections can extend dispatch; post-delivery installation cannot. Owner/PM confirm the work list and physically completed inspection; all pre-PDI tasks must be verified first. Changed work invalidates inspection readiness. Owner/PM edit the allowance without changing targets. PM initiates dispatch target revisions and owner approves; customer response remains optional. Closed schedules freeze until reopening.
+
+Change log: 2026-10-11 — Implemented and verified the user-approved milestone flow.
 Status: Initial documented rules; application rules are requirements/proposals awaiting implementation.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§5–12, 15, and Added Input; user's instruction to maintain six project documents.
 

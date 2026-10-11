@@ -1,6 +1,12 @@
 # WorkInProgress — Durable project memory
 
 Last updated: 2026-10-11
+
+## Automatic PDI, dispatch and delivery — 2026-10-11
+
+User confirmed PDI takes one day and requested implementation on 2026-10-11. Implemented chain: required work -> next-day one-day PDI -> editable default seven days -> dispatch -> three days -> delivery. Installation/handover is post-delivery. Forecasts never silently replace approved targets; actual PDI requires verified work and confirmed work list. 53 automated tests and targeted local browser checks passed. Existing data retained; synthetic milestone QA project remains available. Refresh the local app and choose Scheduling phase on tasks; owner/PM can adjust allowance and confirm the work list. Production email and deployment remain unverified.
+
+Change log: 2026-10-11 — Implemented and verified the user-approved milestone flow.
 Status: Shared Node/SQLite pilot implemented; 24 automated tests passed; actual email and deployment pending.
 
 ## Visible workflow verification and assignment visibility — 2026-10-11

@@ -1,6 +1,12 @@
 # WorkInProgress — Product and interface design
 
 Last updated: 2026-10-11
+
+## Automatic PDI, dispatch and delivery — 2026-10-11
+
+New project asks for Target dispatch and previews Target delivery (+3 days). Task forms require explicit assignee and expose Scheduling phase: before PDI, after PDI/packing, or after delivery/installation. Project overview shows work-ready date, one-day PDI, dispatch, delivery, approved targets, variance and readiness warnings. Owner/PM use Edit PDI/dispatch allowance to adjust days and confirm the work list; Confirm PDI completed stays disabled until required work is verified. Managers can correct a task phase with an audited reason.
+
+Change log: 2026-10-11 — Implemented and verified the user-approved milestone flow.
 Status: Responsive OTP login and operational web screens implemented; browser visual QA pending.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), especially §§2, 7, 9, 13.2, and Added Input.
 

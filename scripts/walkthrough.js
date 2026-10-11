@@ -101,7 +101,7 @@ try {
   await connect(); await command('Page.navigate', { url: origin }); await pause(2500);
   await step('Owner signs in with local email OTP', () => login('owner'));
   await step('Create project with all fields including PO number', async () => {
-    await click('#new-project'); await field('name', projectName); await field('customer', 'Watch Customer / Machine order'); await field('poNumber', `WATCH-PO-${run}`); await field('start', '2026-10-11'); await field('delivery', '2026-12-31'); await save();
+    await click('#new-project'); await field('name', projectName); await field('customer', 'Watch Customer / Machine order'); await field('poNumber', `WATCH-PO-${run}`); await field('start', '2026-10-11'); await field('dispatchTarget', '2026-12-28'); await save();
     pid = (await state()).projects.find(p => p.name === projectName).id; await openProject();
   });
   for (const role of roles) await step(`Add ${role} member and fill role-specific fields`, async () => {
@@ -124,8 +124,8 @@ try {
   await step('Purchase manager approves another person’s date request', async () => { await login('purchase'); await click('[data-view="approvals"]'); const r = (await state()).changes.find(r => r.project === pid && r.type === 'date' && r.status === 'Pending'); await click(`[data-decide="${r.id}"]`); await field('decision', 'Approved'); await field('reason', 'Test recovery plan accepted.'); await save(); });
   await step('Owner requests additional scope', async () => { await login('owner'); await openProject(); await click('#scope'); await field('reason', 'Add final machine test to the synthetic project.'); await save(); });
   await step('Project manager approves scope and allocates it to a selected member', async () => { await login('pm'); await click('[data-view="approvals"]'); const r = (await state()).changes.find(r => r.project === pid && r.type === 'scope' && r.status === 'Pending'); await click(`[data-decide="${r.id}"]`); await field('decision', 'Approved'); await field('reason', 'Allocate accepted test work.'); await taskInput('Final machine test', 'staff'); await save(); });
-  await step('Project manager initiates a customer delivery revision', async () => { await openProject(); await click('#delivery'); await field('proposedDate', '2027-01-02'); await field('reason', 'Additional test scope affects the forecast delivery.'); await save(); });
-  await step('Owner approves delivery revision and customer is notified', async () => { await login('owner'); await click('[data-view="approvals"]'); const r = (await state()).changes.find(r => r.project === pid && r.type === 'delivery' && r.status === 'Pending'); await click(`[data-decide="${r.id}"]`); await field('decision', 'Approved'); await field('reason', 'Approved revised test delivery.'); await save(); });
+  await step('Project manager initiates a customer delivery revision', async () => { await openProject(); await click('#delivery'); await field('proposedDate', '2026-12-30'); await field('reason', 'Additional test scope affects the forecast delivery.'); await save(); });
+  await step('Owner approves delivery revision and customer is notified', async () => { await login('owner'); await click('[data-view="approvals"]'); const r = (await state()).changes.find(r => r.project === pid && ['delivery', 'dispatch'].includes(r.type) && r.status === 'Pending'); await click(`[data-decide="${r.id}"]`); await field('decision', 'Approved'); await field('reason', 'Approved revised test delivery.'); await save(); });
   await step('Technician acknowledges and submits assembly completion', async () => { await login('staff'); await updateTask('Assemble machine'); });
   await step('Technician submits the additional final-test work', () => updateTask('Final machine test'));
   await step('Project manager verifies assembly and additional test work', async () => { await login('pm'); await verifyTask('Assemble machine'); await verifyTask('Final machine test'); });
@@ -148,7 +148,15 @@ try {
     const xref = Buffer.byteLength(pdf); pdf += 'xref\n0 6\n0000000000 65535 f \n' + offsets.slice(1).map(n => String(n).padStart(10, '0') + ' 00000 n \n').join('') + `trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`; writeFileSync(file, pdf);
     await click('#upload'); await field('audience', 'customer'); const doc = await command('DOM.getDocument'); const input = await command('DOM.querySelector', { nodeId: doc.root.nodeId, selector: '#modal-form input[type=file]' }); await command('DOM.setFileInputFiles', { nodeId: input.nodeId, files: [file] }); await pause(2500); await save();
   });
-  await step('Owner advances stages through final acceptance', async () => { await login('owner'); await openProject(); for (const stage of (await state()).stages.slice(1)) { await click('#stage'); await field('stage', stage); await save(); } });
+  await step('Owner advances stages through final acceptance', async () => {
+    await login('owner'); await openProject(); await click('#milestone-settings'); await field('pdiDispatchDays', '7');
+    if (!await evaluate('document.querySelector("[name=planningComplete]").checked')) await check('planningComplete');
+    await save();
+    for (const stage of (await state()).stages.slice(1)) {
+      await click('#stage'); await field('stage', stage); await save();
+      if (stage === 'Pre-dispatch inspection') { await click('#complete-pdi'); await field('date', new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })); await check('inspected'); await save(); }
+    }
+  });
   await step('Close the project and verify work controls stop', async () => { await click('#close'); await save(); await assert(!await evaluate('!!document.getElementById("new-task")'), 'Closed project still allows assignment.'); });
   await step('Only owner reopens at the last closing stage', async () => { await login('pm'); await openProject(); await assert(!await evaluate('!!document.getElementById("reopen")'), 'Manager can reopen.'); await login('owner'); await openProject(); await click('#reopen'); await save(); await assert((await state()).projects.find(p => p.id === pid).stage === 'Final acceptance', 'Reopening reset the stage.'); });
   await step('Finish with all test tasks verified and close the test project', async () => { const s = await state(); await assert(s.tasks.filter(t => t.project === pid).every(t => t.status === 'Completed'), 'Some tasks are not completed.'); await click('#close'); await save(); await screenshot('completed-project'); });

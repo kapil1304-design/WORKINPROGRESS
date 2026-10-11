@@ -1,6 +1,12 @@
 # WorkInProgress — Product requirements
 
 Last updated: 2026-10-11
+
+## Automatic PDI, dispatch and delivery — 2026-10-11
+
+R30: Forecast the one-day PDI after all required pre-PDI work, dispatch after an editable seven-calendar-day allowance, and delivery three calendar days after dispatch. Installation/handover is separate. Confirmed by user on 2026-10-11; implementation and verification completed. Approved targets remain distinct from forecasts. AT45: forecast arithmetic, phase exclusions and late corrections. AT46: verified-work readiness, actual inspection and invalidation. AT47: permissions, target approval and closure freeze. Evidence: test/schedule.test.js, HTTP tests and local browser checks; 53 automated tests passed.
+
+Change log: 2026-10-11 — Implemented and verified the user-approved milestone flow.
 Status: Confirmed requirements with tested shared pilot core; remaining report features and production readiness pending.
 Source: [Complete project report](WorkInProgress_Complete_Project_Document.doc), version 1.0, 8 October 2026, sections 1–18 and Added Input.
 

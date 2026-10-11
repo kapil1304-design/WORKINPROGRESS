@@ -36,6 +36,8 @@ The application has no third-party runtime packages. It uses Node's HTTP, crypto
 
 ## Implemented workflows
 
+- Automatic milestones: latest required work date, next-day one-day PDI, editable default seven-day dispatch allowance and delivery three days after dispatch. Task phases separate pre-PDI work, post-PDI corrections/packing and post-delivery installation. Owner/PM confirm the work list and actual inspection; verified work is required. Forecasts and approved targets remain separate; closed schedules freeze until reopening. New projects enter a dispatch target and preview delivery. Verified with 53 automated tests and targeted local browser checks on 2026-10-11.
+
 - Email OTP authentication, expiry, attempt/resend limits, hashed session tokens, HTTP-only cookies and logout.
 - Durable SQLite records, transactional mutations, audit events, optimistic task-date/version checks and update retry deduplication.
 - Owner-created projects, per-project membership/roles, owner invitations and membership removal.

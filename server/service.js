@@ -1,11 +1,12 @@
 import { randomUUID } from 'node:crypto';
+import { addDays, indiaDay, inspectionSignature, milestoneForecast, phases, taskPhase } from './schedule.js';
 
 export class AppError extends Error {
   constructor(message, status = 400) { super(message); this.status = status; }
 }
 const fail = (message, status) => { throw new AppError(message, status); };
 export const departments = ['Mechanical', 'Design', 'Assembly', 'Procurement', 'Electrical Wiring', 'PLC Programming', 'Software Development', 'Installation', 'Stores and Material Control', 'Testing'];
-export const stages = ['Planning', 'Design', 'Procurement', 'Assembly', 'Factory testing', 'Dispatch', 'Installation', 'Final acceptance'];
+export const stages = ['Planning', 'Design', 'Procurement', 'Assembly', 'Factory testing', 'Pre-dispatch inspection', 'Dispatch', 'Installation', 'Final acceptance'];
 export const roles = ['pm', 'purchase', 'staff', 'vendor', 'service', 'customer'];
 const states = ['Not started', 'In progress', 'Blocked', 'Submitted for verification', 'Completed'];
 export function text(value, label, max = 4000) {
@@ -74,7 +75,7 @@ export class Service {
   canApprove(actor, r) {
     if (actor.id === r.initiator) return false;
     const role = this.role(actor, r.project);
-    if (r.type === 'delivery') return role === 'owner';
+    if (['delivery', 'dispatch'].includes(r.type)) return role === 'owner';
     if (r.type === 'scope') return role === (r.initiatorRole === 'owner' ? 'pm' : 'owner');
     return ['owner', 'pm', 'purchase'].includes(role);
   }
@@ -84,22 +85,24 @@ export class Service {
     const tasks = this.s.all('tasks').filter(t => ids.has(t.project) && this.taskVisible(actor, t));
     const taskIds = new Set(tasks.map(t => t.id));
     const updates = this.s.all('updates').filter(u => ids.has(u.project) && (!u.task || taskIds.has(u.task)) && (this.isInternal(actor, u.project) || this.role(actor, u.project) === 'customer' || u.user === actor.id));
-    const filteredTasks = tasks.map(t => this.role(actor, t.project) === 'customer' ? { id: t.id, project: t.project, title: t.customerTitle || `${t.department} activity`, department: t.department, due: t.due, baseline: t.baseline, forecast: t.forecast, status: t.status, verifiedAt: t.verifiedAt, version: t.version } : t);
+    const filteredTasks = tasks.map(t => this.role(actor, t.project) === 'customer' ? { id: t.id, project: t.project, title: t.customerTitle || `${t.department} activity`, department: t.department, phase: taskPhase(t), due: t.due, baseline: t.baseline, forecast: t.forecast, status: t.status, verifiedAt: t.verifiedAt, version: t.version } : t);
     const filteredUpdates = updates.map(u => this.role(actor, u.project) === 'customer' ? { id: u.id, project: u.project, task: u.task, department: u.department, at: u.at, status: u.status } : u);
     const members = this.s.all('members').filter(m => ids.has(m.project) && this.isInternal(actor, m.project));
     const userIds = new Set(members.map(m => m.user));
     const users = this.s.all('users').filter(u => u.id === actor.id || (actor.owner || userIds.has(u.id)) && u.active).map(u => this.publicUser(u));
     const comments = this.s.all('comments').filter(c => ids.has(c.project) && this.audienceAllowed(actor, c.project, c.audience));
-    const changes = this.s.all('changes').filter(r => ids.has(r.project) && (this.isInternal(actor, r.project) || this.role(actor, r.project) === 'customer' && r.status !== 'Pending' && ['delivery', 'scope'].includes(r.type))).map(r => this.role(actor, r.project) === 'customer' ? { id: r.id, project: r.project, type: r.type, status: r.status, proposedDate: r.proposedDate, decidedAt: r.decidedAt, acceptance: r.acceptance ?? 'Pending' } : { ...r, canApprove: this.canApprove(actor, r) });
+    const changes = this.s.all('changes').filter(r => ids.has(r.project) && (this.isInternal(actor, r.project) || this.role(actor, r.project) === 'customer' && r.status !== 'Pending' && ['delivery', 'dispatch', 'scope'].includes(r.type))).map(r => this.role(actor, r.project) === 'customer' ? { id: r.id, project: r.project, type: r.type, status: r.status, proposedDate: r.proposedDate, decidedAt: r.decidedAt, acceptance: r.acceptance ?? 'Pending' } : { ...r, canApprove: this.canApprove(actor, r) });
     const attachments = this.s.all('attachments').filter(a => ids.has(a.project) && this.audienceAllowed(actor, a.project, a.audience)).map(({ path, uploader, ...a }) => a);
     const contacts = projects.flatMap(p => this.recipients(p.id, ['owner', 'pm', 'purchase']).map(id => ({ id, project: p.id, name: this.s.get('users', id)?.name }))).filter(c => this.role(actor, c.project) !== 'customer');
-    return { me: this.publicUser(actor), projects: projects.map(p => ({ ...p, customer: ['vendor', 'service'].includes(this.role(actor, p.id)) ? undefined : p.customer, poNumber: ['vendor', 'service'].includes(this.role(actor, p.id)) ? undefined : p.poNumber, role: this.role(actor, p.id) })), tasks: filteredTasks, updates: filteredUpdates, members, users, contacts, comments: comments.map(c => !this.isInternal(actor, c.project) ? { ...c, user: undefined } : c), changes, attachments, notifications: this.s.all('notifications').filter(n => n.user === actor.id && ids.has(n.project)), departments: this.s.all('departments').map(d => d.name).length ? this.s.all('departments').map(d => d.name) : departments, stages };
+    return { me: this.publicUser(actor), projects: projects.map(p => ({ ...p, closedMilestones: undefined, pdiCompletedBy: this.isInternal(actor, p.id) ? p.pdiCompletedBy : undefined, pdiCompletedAgainst: this.isInternal(actor, p.id) ? p.pdiCompletedAgainst : undefined, dispatchTarget: p.dispatchTarget || addDays(p.delivery, -3), milestones: this.isInternal(actor, p.id) || this.role(actor, p.id) === 'customer' ? this.schedule(p.id) : undefined, customer: ['vendor', 'service'].includes(this.role(actor, p.id)) ? undefined : p.customer, poNumber: ['vendor', 'service'].includes(this.role(actor, p.id)) ? undefined : p.poNumber, role: this.role(actor, p.id) })), tasks: filteredTasks, updates: filteredUpdates, members, users, contacts, comments: comments.map(c => !this.isInternal(actor, c.project) ? { ...c, user: undefined } : c), changes, attachments, notifications: this.s.all('notifications').filter(n => n.user === actor.id && ids.has(n.project)), departments: this.s.all('departments').map(d => d.name).length ? this.s.all('departments').map(d => d.name) : departments, stages };
   }
   createProject(actor, input) {
     if (!actor.owner) fail('Only the business owner creates projects.', 403);
-    const start = input.start ? date(input.start, 'start date') : this.now().slice(0, 10);
+    const start = input.start ? date(input.start, 'start date') : indiaDay(this.now());
     const poNumber = input.poNumber === undefined || input.poNumber === '' ? null : text(input.poNumber, 'PO number', 100);
-    const p = this.add('projects', { name: text(input.name, 'Project name', 150), customer: text(input.customer, 'Customer reference', 150), poNumber, delivery: date(input.delivery, 'delivery date'), originalDelivery: input.delivery, start, retentionDue: anniversary(`${start}T00:00:00Z`), stage: 'Planning', closed: false, createdAt: this.now(), activeSince: this.now(), version: 1 });
+    const dispatchTarget = input.dispatchTarget ? date(input.dispatchTarget, 'target dispatch date') : addDays(date(input.delivery, 'delivery date'), -3);
+    const delivery = input.dispatchTarget ? addDays(dispatchTarget, 3) : input.delivery;
+    const p = this.add('projects', { name: text(input.name, 'Project name', 150), customer: text(input.customer, 'Customer reference', 150), poNumber, delivery, originalDelivery: delivery, dispatchTarget, originalDispatchTarget: dispatchTarget, pdiDispatchDays: 7, planningComplete: false, start, retentionDue: anniversary(`${start}T00:00:00Z`), stage: 'Planning', closed: false, createdAt: this.now(), activeSince: this.now(), version: 1 });
     this.audit(actor, p.id, 'project.created');
     return p;
   }
@@ -164,7 +167,12 @@ export class Service {
   transition(actor, pid, action, input = {}) {
     const p = this.access(actor, pid);
     if (action === 'reopen') { this.allow(actor, pid, ['owner']); if (!p.closed) fail('Project is already open.', 409); p.closed = false; p.activeSince = this.now(); p.reopenedAt = this.now(); }
-    else { this.access(actor, pid, true); this.allow(actor, pid, ['owner', 'pm']); if (action === 'close') { p.closed = true; p.closedAt = this.now(); for (const n of this.s.all('notifications').filter(n => n.project === pid)) this.s.put('notifications', { ...n, resolved: true }); } else if (action === 'stage') p.stage = pick(input.stage, stages, 'stage'); else fail('Unknown transition.'); }
+    else { this.access(actor, pid, true); this.allow(actor, pid, ['owner', 'pm']); if (action === 'close') { p.closedMilestones = this.schedule(pid); p.closed = true; p.closedAt = this.now(); for (const n of this.s.all('notifications').filter(n => n.project === pid)) this.s.put('notifications', { ...n, resolved: true }); } else if (action === 'stage') {
+      const stage = pick(input.stage, stages, 'stage'), schedule = this.schedule(pid);
+      if (stage === 'Pre-dispatch inspection' && !schedule.pdiReady) fail('PDI requires a confirmed work list and all pre-PDI work physically verified complete.', 409);
+      if (stage === 'Dispatch' && !schedule.dispatchReady) fail('Dispatch requires current PDI confirmation and all post-PDI work verified complete.', 409);
+      p.stage = stage;
+    } else fail('Unknown transition.'); }
     p.version++; this.s.put('projects', p); this.audit(actor, pid, `project.${action}`); return p;
   }
   createTask(actor, pid, input) {
@@ -173,10 +181,40 @@ export class Service {
     const assignee = this.user(input.assignee);
     if (!this.membership(assignee, pid) || this.role(assignee, pid) === 'customer') fail('Assignee must be an execution member added to this project.');
     const department = pick(input.department, this.snapshot(actor).departments, 'department');
+    const phase = input.phase === undefined ? (department === 'Installation' ? 'postDelivery' : 'prePdi') : pick(input.phase, phases, 'scheduling phase');
     const dependencies = Array.isArray(input.dependencies) ? input.dependencies : [];
     for (const id of dependencies) { const t = this.task(actor, id); if (t.project !== pid) fail('Dependency must belong to this project.'); }
-    const t = this.add('tasks', { project: pid, title: text(input.title, 'Task title', 200), customerTitle: input.customerTitle ? text(input.customerTitle, 'Customer label', 200) : null, department, assignee: assignee.id, type: pick(input.type, ['Internal', 'Purchase', 'Service'], 'work type'), scope: text(input.scope || input.title, 'Scope'), criteria: text(input.criteria || 'Physical verification by authorized verifier', 'Acceptance criteria'), due: date(input.due, 'target date'), baseline: input.due, forecast: input.due, status: 'Not started', dependencies, acknowledgement: 'Pending', createdAt: this.now(), version: 1, requiredQuantity: input.type === 'Purchase' ? this.quantity(input.requiredQuantity || 1) : null, dispatched: 0, received: 0, accepted: 0, rejected: 0 });
+    const t = this.add('tasks', { project: pid, title: text(input.title, 'Task title', 200), customerTitle: input.customerTitle ? text(input.customerTitle, 'Customer label', 200) : null, department, phase, assignee: assignee.id, type: pick(input.type, ['Internal', 'Purchase', 'Service'], 'work type'), scope: text(input.scope || input.title, 'Scope'), criteria: text(input.criteria || 'Physical verification by authorized verifier', 'Acceptance criteria'), due: date(input.due, 'target date'), baseline: input.due, forecast: input.due, status: 'Not started', dependencies, acknowledgement: 'Pending', createdAt: this.now(), version: 1, requiredQuantity: input.type === 'Purchase' ? this.quantity(input.requiredQuantity || 1) : null, dispatched: 0, received: 0, accepted: 0, rejected: 0 });
+    if (phase === 'prePdi') { const p = this.s.get('projects', pid); p.planningComplete = false; p.version++; this.s.put('projects', p); }
     this.audit(actor, pid, 'task.created', { task: t.id }); this.notify(pid, [assignee.id], 'A task has been assigned to you.'); return t;
+  }
+  schedule(pid) { const p = this.s.get('projects', pid); if (p.closed && p.closedMilestones) return p.closedMilestones; return milestoneForecast(p, this.s.all('tasks').filter(t => t.project === pid), p.closed ? p.closedAt || this.now() : this.now()); }
+  milestoneSettings(actor, pid, input) {
+    const p = this.access(actor, pid, true); this.allow(actor, pid, ['owner', 'pm']); this.version(p, input);
+    const days = Number(input.pdiDispatchDays);
+    if (!Number.isInteger(days) || days < 0 || days > 365) fail('PDI-to-dispatch allowance must be 0–365 calendar days.');
+    if (typeof input.planningComplete !== 'boolean') fail('Confirm whether all pre-PDI work has been entered.');
+    const before = { pdiDispatchDays: p.pdiDispatchDays ?? 7, planningComplete: !!p.planningComplete };
+    p.pdiDispatchDays = days; p.planningComplete = input.planningComplete; p.version++;
+    this.s.put('projects', p); this.audit(actor, pid, 'milestones.settings', { before, after: { pdiDispatchDays: days, planningComplete: p.planningComplete } });
+    return this.schedule(pid);
+  }
+  taskSchedule(actor, id, input) {
+    const t = this.task(actor, id, true); this.allow(actor, t.project, ['owner', 'pm', 'purchase']); this.version(t, input);
+    const before = taskPhase(t); t.phase = pick(input.phase, phases, 'scheduling phase');
+    const reason = text(input.reason, 'Scheduling phase change reason'); t.version++; this.s.put('tasks', t);
+    const p = this.s.get('projects', t.project); p.planningComplete = false; p.version++; this.s.put('projects', p);
+    this.audit(actor, t.project, 'task.phase', { task: id, before, after: t.phase, reason }); return t;
+  }
+  completePdi(actor, pid, input) {
+    const p = this.access(actor, pid, true); this.allow(actor, pid, ['owner', 'pm']); this.version(p, input);
+    if (!this.schedule(pid).pdiReady) fail('PDI requires a confirmed work list and all pre-PDI work physically verified complete.', 409);
+    if (input.inspected !== true) fail('Confirm that the one-day PDI was performed.');
+    const actual = date(input.date, 'PDI completion date'), tasks = this.s.all('tasks').filter(t => t.project === pid && taskPhase(t) === 'prePdi');
+    const latest = tasks.map(t => indiaDay(t.verifiedAt)).sort().at(-1);
+    if (actual < latest || actual > indiaDay(this.now())) fail('PDI completion must be after work verification and cannot be in the future.');
+    p.pdiActualDate = actual; p.pdiCompletedAgainst = inspectionSignature(tasks); p.pdiCompletedBy = actor.id; p.version++;
+    this.s.put('projects', p); this.audit(actor, pid, 'pdi.completed', { date: actual }); return this.schedule(pid);
   }
   version(item, input) { if (!Number.isInteger(input.version) || input.version !== item.version) fail('This record changed. Refresh and try again.', 409); }
   update(actor, pid, input, key) {
@@ -208,8 +246,8 @@ export class Service {
     t.acknowledgement = pick(input.decision, ['Accepted', 'Disputed'], 'acknowledgement'); if (input.decision === 'Disputed') text(input.reason, 'Dispute reason'); t.version++; this.s.put('tasks', t); this.audit(actor, t.project, 'task.acknowledged', { task: id, decision: input.decision, reason: input.reason || null }); return t;
   }
   change(actor, pid, input) {
-    this.access(actor, pid, true); const type = pick(input.type, ['date', 'delivery', 'scope'], 'change type');
-    this.allow(actor, pid, type === 'delivery' ? ['pm'] : type === 'scope' ? ['owner', 'pm'] : ['owner', 'pm', 'purchase']);
+    this.access(actor, pid, true); const type = pick(input.type, ['date', 'delivery', 'dispatch', 'scope'], 'change type');
+    this.allow(actor, pid, ['delivery', 'dispatch'].includes(type) ? ['pm'] : type === 'scope' ? ['owner', 'pm'] : ['owner', 'pm', 'purchase']);
     const t = type === 'date' ? this.task(actor, input.task, true) : null;
     if (t && t.project !== pid) fail('Task not found.', 404);
     const proposedDate = type !== 'scope' ? date(input.proposedDate, 'proposed date') : null;
@@ -223,16 +261,16 @@ export class Service {
     const decision = pick(input.decision, ['Approved', 'Rejected'], 'decision');
     if (decision === 'Approved') {
       if (r.type === 'date') { const t = this.task(actor, r.task, true); if (t.version !== r.targetVersion) fail('Task changed since this request. Submit a new request.', 409); t.due = r.proposedDate; t.version++; this.s.put('tasks', t); }
-      if (r.type === 'delivery') { const p = this.access(actor, r.project, true); if (p.version !== r.targetVersion) fail('Project changed since this request. Submit a new request.', 409); p.delivery = r.proposedDate; p.version++; this.s.put('projects', p); }
+      if (['delivery', 'dispatch'].includes(r.type)) { const p = this.access(actor, r.project, true); if (p.version !== r.targetVersion) fail('Project changed since this request. Submit a new request.', 409); p.originalDispatchTarget ??= addDays(p.originalDelivery || p.delivery, -3); p.dispatchTarget = r.type === 'dispatch' ? r.proposedDate : addDays(r.proposedDate, -3); p.delivery = addDays(p.dispatchTarget, 3); p.version++; this.s.put('projects', p); }
       if (r.type === 'scope') { if (!Array.isArray(input.tasks) || input.tasks.length < 1) fail('Assign accepted additional scope to the team with at least one task.'); r.assignedTasks = input.tasks.map(t => this.createTask(actor, r.project, t).id); }
     }
     r.status = decision; r.decidedBy = actor.id; r.decidedAt = this.now(); r.decisionReason = input.reason || '';
-    if (r.type !== 'date') { this.notify(r.project, this.recipients(r.project, ['customer']), `${r.type === 'delivery' ? 'Delivery date' : 'Additional scope'} change ${decision.toLowerCase()}.${r.proposedDate && decision === 'Approved' ? ` Revised date: ${r.proposedDate}.` : ''}`); r.notifiedAt = this.now(); }
+    if (r.type !== 'date') { this.notify(r.project, this.recipients(r.project, ['customer']), `${['delivery', 'dispatch'].includes(r.type) ? 'Dispatch/delivery target' : 'Additional scope'} change ${decision.toLowerCase()}.${r.proposedDate && decision === 'Approved' ? ` Revised date: ${r.proposedDate}.` : ''}`); r.notifiedAt = this.now(); }
     this.s.put('changes', r); this.audit(actor, r.project, 'change.decided', { change: id, decision }); return r;
   }
   accept(actor, id, input) {
     const r = this.s.get('changes', id); if (!r) fail('Change not found.', 404); this.access(actor, r.project, true); this.allow(actor, r.project, ['customer']);
-    if (r.status !== 'Approved' || !['delivery', 'scope'].includes(r.type)) fail('No approved revision to respond to.');
+    if (r.status !== 'Approved' || !['delivery', 'dispatch', 'scope'].includes(r.type)) fail('No approved revision to respond to.');
     r.acceptance = pick(input.decision, ['Accepted', 'Rejected'], 'response'); r.customerRespondedAt = this.now(); r.customerRespondedBy = actor.id; this.s.put('changes', r);
     this.notify(r.project, this.recipients(r.project, ['owner', 'pm']), `Customer ${r.acceptance.toLowerCase()} a revision. Work remains active.`); this.audit(actor, r.project, 'customer.responded', { change: id }); return { acceptance: r.acceptance };
   }
